@@ -1,0 +1,145 @@
+import { ToolBar, ToolButton } from "ToolBar.slint";
+import { Show } from "Show.slint";
+import { AddShowWindow } from "AddShowWindow.slint";
+import { ShowWindow } from "ShowWindow.slint";
+import { ChangePictureDialog } from "ChangePictureDialog.slint";
+import { Images } from "Global.slint";
+import { Watchlist } from "Watchlist.slint";
+
+export struct ImageDetails {
+    source: image,
+    path: string,
+}
+
+export component AppWindow inherits Window {
+    min-width: 800px;
+    min-height: 600px;
+    preferred-width: 1000px;
+    preferred-height: 800px;
+    title: "Watchlist";
+
+    callback add-show(Show);
+    callback remove-show(Show);
+    callback cancel-show();
+    callback load-image(string) -> ImageDetails;
+    callback can-import-show-by-link(string) -> bool;
+    callback import-clicked(string) -> Show;
+    callback update-watchlist();
+    callback score-changed(Show);
+    callback status-changed(Show);
+    callback favorite-changed(Show);
+
+    out property <ImageDetails> show-image;
+    in property shows <=> watchlist.shows;
+
+    function load-image-impl(name: string) -> image {
+        show-image = root.load-image(name);
+        if (show-image.source.width == 0) {
+            return Images.show-picture;
+        }
+        else {
+            add-window.link-to-picture = show-image.path;
+            return show-image.source;
+        }
+    }
+
+    watchlist := Watchlist {
+        background: #313131;
+
+        add-clicked => {
+            self.visible = false;
+            add-window.reset();
+            add-window.visible = true;
+        }
+
+        show-clicked(show) => {
+            self.visible = false;
+            show-window.display-show(show);
+            show-window.visible = true;
+        }
+    }
+
+    show-window := ShowWindow {
+        background: #313131;
+        visible: false;
+
+        score-changed => {
+            score-changed(show-window.show);
+            update-watchlist();
+        }
+
+        status-changed => {
+            status-changed(show-window.show);
+            update-watchlist();
+        }
+
+        favorite-changed => {
+            favorite-changed(show-window.show);
+            update-watchlist();
+        }
+
+        back => {
+            update-watchlist();
+            self.visible = false;
+            watchlist.visible = true;
+        }
+
+        edit(show) => {
+            self.visible = false;
+            add-window.set-show(show);
+            add-window.visible = true;
+        }
+
+        remove(show) => {
+            remove-show(show);
+            update-watchlist();
+            self.visible = false;
+            watchlist.visible = true;
+        }
+    }
+
+    add-window := AddShowWindow {
+        background: #313131;
+        visible: false;
+
+        add-show(movie) => {
+            root.add-show(movie);
+            update-watchlist();
+            self.visible = false;
+            watchlist.visible = true;
+        }
+
+        cancel-show => {
+            root.cancel-show();
+            self.visible = false;
+            watchlist.visible = true;
+        }
+
+        change-picture => {
+            change-picture-dialog.show();
+        }
+
+        link-changed(link) => {
+            return can-import-show-by-link(link);
+        }
+
+        import-clicked(link) => {
+            return import-clicked(link);
+        }
+
+        load-image(name) => {
+            return load-image-impl(name);
+        }
+    }
+
+    change-picture-dialog := ChangePictureDialog {
+        width: root.width;
+        height: root.height;
+
+        load-image(name) => {
+            add-window.show-image = load-image-impl(name);
+            return root.show-image.source;
+        }
+    }
+}
+

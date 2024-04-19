@@ -1,0 +1,78 @@
+import { ScrollView } from "std-widgets.slint";
+
+export component TextEdit inherits Rectangle {
+    in property text <=> main-text.text;
+    in property text-color <=> main-text.color;
+    in property placeholder-text <=> placeholder.text;
+
+    preferred-height: 90px;
+    background: #232323;
+    border-color: #555555;
+    border-width: 1px;
+    clip: true;
+
+    placeholder := TextInput {
+        color: main-text.color.darker(70%);
+        read-only: true;
+        visible: main-text.text == "";
+        x: 5px;
+        y: 5px;
+        width: root.width - 30px;
+        height: root.height - 30px;
+        single-line: false;
+        wrap: word-wrap;
+    }
+
+    scroll-bar := Rectangle {
+        property <float> coef: flickable.height / main-text.preferred-height;
+        property <float> maximum: (flickable.viewport-height - flickable.height) / 1px;
+        property <float> position: 0;
+
+        x: root.width - 20px;
+        width: 20px;
+        visible: self.height < main-text.preferred-height;
+        background: root.background.brighter(10%);
+        border-color: #555555;
+        border-width: 1px;
+
+        scroll-handle := Rectangle {
+            border-color: #555555;
+            border-width: 1px;
+            background: touch.pressed ? root.background.brighter(90%) : touch.has-hover ? root.background.brighter(80%) : root.background.brighter(70%);
+            height: root.height * coef;
+            y: (root.height - self.height) * scroll-bar.position / scroll-bar.maximum;
+
+            touch := TouchArea {
+                moved => {
+                    if (self.pressed) {
+                        scroll-bar.position = max(0, min(scroll-bar.maximum, scroll-bar.position +
+                            (self.mouse-y - self.pressed-y) * scroll-bar.maximum / root.height));
+                        flickable.viewport-y = max(-scroll-bar.maximum * 1px, -scroll-bar.position * 1px);
+                    }
+                }
+            }
+        }
+    }
+
+    flickable := Flickable {
+        x: 5px;
+        y: 5px;
+        height: parent.height - 10px;
+        width: parent.width - 25px;
+        viewport-width: self.width;
+        viewport-height: main-text.preferred-height;
+        interactive: false;
+
+        flicked => {
+            if (!touch.has-hover) {
+                scroll-bar.position = -self.viewport-y / 1px;
+            }
+        }
+
+        main-text := TextInput {
+            color: white;
+            single-line: false;
+            wrap: word-wrap;
+        }
+    }
+}

@@ -1,0 +1,113 @@
+import { HorizontalBox } from "std-widgets.slint";
+export component ToolButton inherits Rectangle {
+    in-out property icon <=> image.source;
+    in-out property text <=> button-text.text;
+    in-out property text-color <=> button-text.color;
+    in-out property text-size <=> button-text.font-size;
+    in-out property hint <=> hint-text.text;
+    in property <bool> hint-direction-left: false;
+    in-out property <color> background-color;
+    in-out property <color> normal-color: root.background-color;
+    in-out property <color> checked-color: root.background-color;
+    in-out property <bool> checkable: false;
+    in-out property <bool> checked: false;
+
+    callback clicked;
+
+    background: background-color;
+
+    Rectangle {
+        clip: true;
+
+        HorizontalBox {
+            padding: 0;
+            spacing: button-text.text == "" ? 0 : 4px;
+            alignment: center;
+
+            image := Image {
+            }
+
+            button-text := Text {
+                color: white;
+                vertical-alignment: center;
+            }
+        }
+    }
+
+    hint-widget := Rectangle {
+        in-out property name <=> hint-text.text;
+        property <bool> display: false;
+
+        border-color: lightgrey;
+        border-width: 1px;
+        background: #333333;
+        width: hint-text.width + 4px;
+        height: hint-text.height + 4px;
+        opacity: 0%;
+        visible: !(hint-text.width == 0px);
+
+        hint-text := Text {}
+
+        states [
+            shown when self.display: {
+                opacity: 100%;
+                hint-widget.x: hint-direction-left ? touch.mouse-x - 15px - hint-text.width : touch.mouse-x + 15px;
+                hint-widget.y: touch.mouse-y;
+                in {
+                    animate opacity { duration: 2s; easing: ease-in-expo; }
+                }
+            }
+            hidden when !self.display: {
+                opacity: 0%;
+            }
+        ]
+    }
+
+    touch := TouchArea {
+        clicked => {
+            root.clicked();
+            root.checked = !root.checked;
+        }
+    }
+
+    states [
+        checked-pressed when touch.pressed && root.checked && root.checkable: {
+            root.background: checked-color.brighter(40%);
+            hint-widget.display: false;
+        }
+        checked-hovered when root.checked && root.checkable && touch.has-hover: {
+            root.background: checked-color.brighter(20%);
+            hint-widget.display: true;
+        }
+        checked when root.checked && root.checkable: {
+            root.background: checked-color;
+            hint-widget.display: false;
+        }
+        pressed when touch.pressed: {
+            root.background: normal-color.brighter(40%);
+            hint-widget.display: false;
+        }
+        hovered when !touch.pressed && touch.has-hover: {
+            root.background: normal-color.brighter(20%);
+            hint-widget.display: true;
+        }
+        normal when !touch.pressed: {
+            root.background: normal-color;
+            hint-widget.display: false;
+        }
+    ]
+}
+
+export component ToolBar inherits Rectangle {
+    drop-shadow-color: #101010;
+    drop-shadow-offset-y: 1px;
+    drop-shadow-blur: 4px;
+    z: 10;
+
+    HorizontalLayout {
+        alignment: space-between;
+
+        @children
+    }
+}
+

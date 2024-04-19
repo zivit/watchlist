@@ -1,0 +1,64 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { ToolBar, ToolButton } from "ToolBar.slint";
+import { Show } from "Show.slint";
+import { Images } from "Global.slint";
+import { TextEdit } from "TextEdit.slint";
+import { ListElement } from "ListElement.slint";
+
+export component Watchlist inherits Rectangle {
+    in-out property <[Show]> shows;
+    callback add-clicked();
+    callback show-clicked(Show);
+
+    VerticalBox {
+        padding: 0px;
+        spacing: 0px;
+
+        ToolBar {
+            height: 50px;
+            background: #232323;
+        }
+
+        Flickable {
+            VerticalBox {
+                padding: 0px;
+                spacing: 0px;
+
+                for s in shows : ListElement {
+                    show: s;
+
+                    Rectangle {
+                        background: #101010;
+                        height: 1px;
+                        y: parent.height - 1px;
+                    }
+
+                    TouchArea {
+                        clicked() => {
+                            show-clicked(s);
+                        }
+                    }
+                }
+            }
+        }
+    }
+
+    add-button := ToolButton {
+        icon: Images.add;
+        x: root.width - 100px;
+        y: root.height - 100px;
+        width: 70px;
+        height: 70px;
+        background-color: #e36307;
+        border-radius: self.width / 2;
+        drop-shadow-color: #101010;
+        drop-shadow-offset-y: 1px;
+        drop-shadow-blur: 4px;
+        z: 10;
+
+        clicked => {
+            add-clicked();
+        }
+    }
+}
+

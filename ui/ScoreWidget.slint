@@ -1,0 +1,48 @@
+import { Images } from "Global.slint";
+import { HorizontalBox, VerticalBox } from "std-widgets.slint";
+
+export component ScoreWidget inherits Rectangle {
+    callback score-changed(int);
+    in-out property <int> score: 0;
+    property <[string]> titles: [
+        "--",
+        "Appalling",
+        "Horrible",
+        "Very bad",
+        "Bad",
+        "Average",
+        "Fine",
+        "Good",
+        "Very good",
+        "Great",
+        "Masterpiece",
+    ];
+
+    VerticalBox {
+        spacing: 1px;
+        padding: 0;
+
+        Text {
+            horizontal-alignment: center;
+            vertical-alignment: center;
+            text: titles[score];
+        }
+
+        HorizontalBox {
+            for s[id] in 10 : Rectangle {
+                im := Image {
+                    source: id < root.score ? Images.star : Images.star-inactive;
+                }
+            }
+        }
+    }
+
+    TouchArea {
+        mouse-cursor: MouseCursor.pointer;
+
+        clicked => {
+            root.score = self.mouse-x / self.width * 10 + 1;
+            score-changed(root.score);
+        }
+    }
+}

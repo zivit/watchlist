@@ -1,0 +1,32 @@
+export component LineEdit inherits Rectangle {
+    in property text <=> main-text.text;
+    in property text-color <=> main-text.color;
+    in property placeholder-text <=> placeholder.text;
+
+    preferred-height: 30px;
+    background: #232323;
+    border-color: #555555;
+    border-width: 1px;
+    clip: true;
+    vertical-stretch: 0;
+
+    callback edited();
+
+    placeholder := TextInput {
+        color: main-text.color.darker(70%);
+        read-only: true;
+        vertical-alignment: center;
+        visible: main-text.text == "";
+        x: 5px;
+    }
+
+    main-text := TextInput {
+        color: white;
+        vertical-alignment: center;
+        x: 5px;
+
+        edited => {
+            root.edited();
+        }
+    }
+}

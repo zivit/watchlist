@@ -1,0 +1,331 @@
+import { VerticalBox, HorizontalBox, ComboBox } from "std-widgets.slint";
+import { ToolBar, ToolButton } from "ToolBar.slint";
+import { Show, Status } from "Show.slint";
+import { Images } from "Global.slint";
+import { ScoreWidget } from "ScoreWidget.slint";
+import { LineEdit } from "LineEdit.slint";
+import { TextEdit } from "TextEdit.slint";
+
+export component AddShowWindow inherits Rectangle {
+    callback add-show(Show);
+    callback cancel-show();
+    callback change-picture();
+    callback link-changed(string) -> bool;
+    callback import-clicked(string) -> Show;
+    callback load-image(string) -> image;
+    property <Show> show;
+    property <Status> status: Status.watch-later;
+    in-out property show-image <=> show-image-container.source;
+    in property <string> link-to-picture;
+
+    public function reset() {
+        title.text = "";
+        alternative-title.text = "";
+        release-date.text = "";
+        about-show.text = "";
+        link-to-view.text = "";
+        root.show-image = Images.show-picture;
+        score-widget.score = 0;
+        watch-later-button.checked = true;
+        watching-button.checked = false;
+        completed-button.checked = false;
+        favorite-button.checked = false;
+        dropped-button.checked = false;
+    }
+
+    public function set-show(s: Show) {
+        show = s;
+        status = s.status;
+
+        title.text = s.title;
+        alternative-title.text = s.alternative-title;
+        release-date.text = s.release-date;
+        about-show.text = s.about;
+        link-to-view.text = s.link-to-show;
+        score-widget.score = s.score;
+
+        watch-later-button.checked = false;
+        watching-button.checked = false;
+        completed-button.checked = false;
+        favorite-button.checked = false;
+        dropped-button.checked = false;
+
+        if (s.status == Status.watch-later) {
+            watch-later-button.checked = true;
+        }
+        else if (s.status == Status.watching) {
+            watching-button.checked = true;
+        }
+        else if (s.status == Status.completed) {
+            completed-button.checked = true;
+        }
+        else if (s.status == Status.dropped) {
+            dropped-button.checked = true;
+        }
+
+        favorite-button.checked = s.favorite;
+
+        if (s.picture.width > 0) {
+            root.show-image = s.picture;
+        }
+        else {
+            root.show-image = Images.show-picture;
+        }
+    }
+
+    VerticalBox {
+        padding: 0px;
+        spacing: 0px;
+
+        ToolBar {
+            height: 50px;
+            background: #232323;
+
+            add-button := ToolButton {
+                hint: "Add";
+                icon: @image-url("assets/check.png");
+                width: 50px;
+                height: 50px;
+                background-color: #232323;
+                visible: title.text != "";
+                clicked => {
+                    show.title = title.text;
+                    show.alternative-title = alternative-title.text;
+                    show.release-date = release-date.text;
+                    show.about = about-show.text;
+                    show.link-to-show = link-to-view.text;
+                    show.score = score-widget.score;
+                    show.favorite = favorite-button.checked;
+                    show.status = status;
+                    show.link-to-picture = root.link-to-picture;
+                    show.picture = show-image;
+                    add-show(show);
+                }
+            }
+
+            cancel-button := ToolButton {
+                hint: "Cancel";
+                hint-direction-left: true;
+                icon: @image-url("assets/close.png");
+                width: 50px;
+                height: 50px;
+                background-color: #232323;
+                clicked => {
+                    cancel-show();
+                }
+            }
+        }
+
+        HorizontalBox {
+            padding: 25px;
+            spacing: 25px;
+
+            VerticalBox {
+                z: 1;
+                padding: 0px;
+                spacing: 10px;
+                alignment: start;
+
+                show-image-container := Image {
+                    width: 200px;
+                    min-height: 50px;
+                    source: Images.show-picture;
+
+                    TouchArea {
+                        mouse-cursor: pointer;
+
+                        clicked => {
+                            change-picture();
+                        }
+                    }
+                }
+
+                score-widget := ScoreWidget {}
+
+                HorizontalBox {
+                    alignment: space-between;
+                    padding: 0px;
+                    spacing: 0px;
+
+                    watch-later-button := ToolButton {
+                        background-color: #232323;
+                        checked-color: #a7a341;
+                        checkable: true;
+                        checked: true;
+                        width: 36px;
+                        height: 32px;
+                        icon: @image-url("assets/clock.png");
+                        hint: "Plan to watch";
+                        z: 100;
+                        clicked => {
+                            if (!self.checked) {
+                                watching-button.checked = false;
+                                completed-button.checked = false;
+                                dropped-button.checked = false;
+                                status = Status.watch-later;
+                            }
+                            else {
+                                self.checked = false;
+                            }
+                        }
+                    }
+                    watching-button := ToolButton {
+                        background-color: #232323;
+                        checked-color: #2d883b;
+                        checkable: true;
+                        checked: false;
+                        width: 36px;
+                        height: 32px;
+                        icon: @image-url("assets/view.png");
+                        hint: "Watching";
+                        z: 99;
+                        clicked => {
+                            if (!self.checked) {
+                                watch-later-button.checked = false;
+                                completed-button.checked = false;
+                                dropped-button.checked = false;
+                                status = Status.watching;
+                            }
+                            else {
+                                self.checked = false;
+                            }
+                        }
+                    }
+                    completed-button := ToolButton {
+                        background-color: #232323;
+                        checked-color: #417ca6;
+                        checkable: true;
+                        checked: false;
+                        width: 36px;
+                        height: 32px;
+                        icon: @image-url("assets/check-mark.png");
+                        hint: "Completed";
+                        z: 98;
+                        clicked => {
+                            if (!self.checked) {
+                                watch-later-button.checked = false;
+                                watching-button.checked = false;
+                                dropped-button.checked = false;
+                                status = Status.completed;
+                            }
+                            else {
+                                self.checked = false;
+                            }
+                        }
+                    }
+                    favorite-button := ToolButton {
+                        background-color: #232323;
+                        checked-color: #a240ab;
+                        checkable: true;
+                        checked: false;
+                        width: 36px;
+                        height: 32px;
+                        icon: @image-url("assets/love.png");
+                        hint: "Favorite";
+                        z: 97;
+                        clicked => {
+                            if (dropped-button.checked) {
+                                completed-button.checked = true;
+                            }
+                            if (!self.checked) {
+                                dropped-button.checked = false;
+                            }
+                        }
+                    }
+                    dropped-button := ToolButton {
+                        background-color: #232323;
+                        checked-color: #942e2e;
+                        checkable: true;
+                        checked: false;
+                        width: 36px;
+                        height: 32px;
+                        icon: @image-url("assets/dislike.png");
+                        hint: "Dropped";
+                        z: 96;
+                        clicked => {
+                            if (!self.checked) {
+                                watch-later-button.checked = false;
+                                watching-button.checked = false;
+                                completed-button.checked = false;
+                                favorite-button.checked = false;
+                                status = Status.dropped;
+                            }
+                            else {
+                                self.checked = false;
+                            }
+                        }
+                    }
+                }
+            }
+
+            VerticalBox {
+                z: 0;
+                padding: 0px;
+                spacing: 5px;
+                alignment: stretch;
+
+                link-to-view := LineEdit {
+                    placeholder-text: "Link for viewing (https://)";
+
+                    edited => {
+                        import-button.visible = root.link-changed(self.text);
+                        // import-button.visible = true;
+                    }
+
+                    import-button := ToolButton {
+                        visible: false;
+                        icon: Images.import;
+                        x: parent.width - self.width;
+                        width: 36px;
+                        height: 30px;
+                        background-color: #232323;
+                        border-color: parent.border-color;
+                        border-width: parent.border-width;
+
+                        clicked => {
+                            root.show = import-clicked(link-to-view.text);
+                            title.text = root.show.title;
+                            alternative-title.text = root.show.alternative-title;
+                            release-date.text = root.show.release-date;
+                            about-show.text = root.show.about;
+                            root.show-image = load-image(root.show.link-to-picture);
+                            score-widget.score = root.show.score;
+
+                            if (root.show.status == Status.watch-later) {
+                                watch-later-button.checked = true;
+                            }
+                            else if (root.show.status == Status.watching) {
+                                watching-button.checked = true;
+                            }
+                            else if (root.show.status == Status.completed) {
+                                completed-button.checked = true;
+                            }
+                            else if (root.show.status == Status.dropped) {
+                                dropped-button.checked = true;
+                            }
+
+                            favorite-button.checked = root.show.favorite;
+                        }
+                    }
+                }
+
+                title := LineEdit {
+                    placeholder-text: "Title";
+                }
+
+                alternative-title := LineEdit {
+                    placeholder-text: "Alternative title";
+                }
+
+                release-date := LineEdit {
+                    placeholder-text: "Release date";
+                }
+
+                about-show := TextEdit {
+                    placeholder-text: "About";
+                }
+            }
+        }
+    }
+}
+

@@ -1,0 +1,84 @@
+import { Button, VerticalBox, HorizontalBox, LineEdit, StandardButton } from "std-widgets.slint";
+import { Images } from "Global.slint";
+
+export component ChangePictureDialog inherits Dialog {
+    callback load-image(string) -> image;
+    out property <image> image: Images.show-picture;
+
+    padding: 0px;
+    visible: false;
+
+    public function show() {
+        root.visible = true;
+        address.focus();
+    }
+
+    Rectangle {
+        background: rgba(12, 12, 12, 90%);
+
+        TouchArea {}
+
+        Rectangle {
+            background: #313131;
+            width: 470px;
+            height: 140px;
+            x: root.width * 1px / 2px - self.width * 1px / 2px;
+            y: root.height * 1px / 2px - self.height * 1px / 2px;
+
+            Rectangle {
+                width: parent.width;
+                height: 35px;
+                y: 0;
+                background: #232323;
+            }
+
+            VerticalBox {
+                alignment: start;
+
+                Text {
+                    text: "Choose a picture for the show by https link or on the local disk";
+                }
+
+                HorizontalBox {
+                    address := LineEdit {
+                        placeholder-text: "Path to the picture";
+
+                        accepted => {
+                            root.image = root.load-image(address.text);
+                            root.visible = false;
+                            address.text = "";
+                        }
+                    }
+
+                    Button {
+                        text: "Open...";
+                    }
+                }
+
+                HorizontalBox {
+                    alignment: end;
+
+                    StandardButton {
+                        kind: ok;
+
+                        clicked => {
+                            root.image = root.load-image(address.text);
+                            root.visible = false;
+                            address.text = "";
+                        }
+                    }
+
+                    StandardButton {
+                        kind: cancel;
+                        clicked => {
+                            root.visible = false;
+                            address.text = "";
+                        }
+                    }
+                }
+            }
+        }
+    }
+}
+
+

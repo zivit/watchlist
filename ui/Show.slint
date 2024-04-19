@@ -1,0 +1,21 @@
+export enum Status {
+    watch-later,
+    watching,
+    completed,
+    dropped,
+}
+
+export struct Show {
+    id: int,
+    title: string,
+    alternative-title: string,
+    release-date: string,
+    about: string,
+    link-to-show: string,
+    score: int,
+    favorite: bool,
+    status: Status,
+    link-to-picture: string,
+    picture: image,
+}
+

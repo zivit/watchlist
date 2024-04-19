@@ -1,0 +1,17 @@
+export component ShowImageFullScreen inherits Rectangle {
+    in property image <=> i.source;
+
+    background: #000000C0;
+
+    TouchArea {
+        VerticalLayout {
+            i := Image {
+                horizontal-alignment: center;
+            }
+        }
+
+        clicked => {
+            root.visible = false;
+        }
+    }
+}
