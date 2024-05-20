@@ -7,29 +7,28 @@ export component ListElement inherits Rectangle {
 
     height: 150px;
 
-    Rectangle {
-        x: 0px;
-        width: 8px;
-
-        states [
-            completed when show.status == Status.completed: {
-                background: root.background;
-            }
-            watch-later when show.status == Status.watch-later: {
-                background: #c2bd20;
-            }
-            watching when show.status == Status.watching: {
-                background: #26a725;
-            }
-            dropped when show.status == Status.dropped: {
-                background: #cb2d2d;
-            }
-        ]
-    }
-
     HorizontalBox {
-        padding: 10px;
+        padding: 0px;
         spacing: 10px;
+
+        Rectangle {
+            width: 8px;
+
+            states [
+                completed when show.status == Status.completed: {
+                    background: root.background;
+                }
+                watch-later when show.status == Status.watch-later: {
+                    background: #c2bd20;
+                }
+                watching when show.status == Status.watching: {
+                    background: #26a725;
+                }
+                dropped when show.status == Status.dropped: {
+                    background: #cb2d2d;
+                }
+            ]
+        }
 
         picture := Image {
             source: show.picture.width > 0 ? show.picture : Images.show-picture;
@@ -41,18 +40,19 @@ export component ListElement inherits Rectangle {
         VerticalBox {
             padding: 0px;
             spacing: 0px;
+            alignment: space-around;
 
-            Text {
+            title := Text {
                 font-size: 20px;
                 font-weight: 900;
                 text: show.title;
             }
 
-            Text {
+            alternative := Text {
                 text: show.alternative-title;
             }
 
-            Text {
+            release := Text {
                 text: show.release-date;
             }
 
@@ -75,12 +75,80 @@ export component ListElement inherits Rectangle {
                     }
                 }
 
-                Image {
+                favorite := Image {
                     width: 24px;
                     height: 24px;
                     source: Images.heart;
                     visible: show.favorite;
                     vertical-alignment: center;
+                }
+            }
+        }
+    }
+}
+
+export component ListElementCompact inherits Rectangle {
+    in property <Show> show;
+
+    height: 50px;
+
+    HorizontalBox {
+        padding: 0px;
+        spacing: 10px;
+
+        Rectangle {
+            width: 8px;
+
+            states [
+                completed when show.status == Status.completed: {
+                    background: root.background;
+                }
+                watch-later when show.status == Status.watch-later: {
+                    background: #c2bd20;
+                }
+                watching when show.status == Status.watching: {
+                    background: #26a725;
+                }
+                dropped when show.status == Status.dropped: {
+                    background: #cb2d2d;
+                }
+            ]
+        }
+
+        picture := Image {
+            source: show.picture.width > 0 ? show.picture : Images.show-picture;
+            width: 35px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+        }
+
+        VerticalLayout {
+            alignment: center;
+
+            HorizontalBox {
+                padding: 0px;
+                spacing: 5px;
+
+                title := Text {
+                    font-size: 16px;
+                    text: show.title;
+                }
+
+                favorite := Image {
+                    width: 24px;
+                    height: 24px;
+                    source: Images.heart;
+                    visible: show.favorite;
+                    vertical-alignment: center;
+                }
+
+                star := Image {
+                    width: 32px;
+                    height: 24px;
+                    source: Images.stars[show.score];
+                    visible: show.score != 0;
+                    vertical-alignment: center;
+                    horizontal-alignment: center;
                 }
             }
         }

@@ -55,12 +55,15 @@ export component AddShowWindow inherits Rectangle {
         }
         else if (s.status == Status.watching) {
             watching-button.checked = true;
+            watch-later-button.checked = false;
         }
         else if (s.status == Status.completed) {
             completed-button.checked = true;
+            watch-later-button.checked = false;
         }
         else if (s.status == Status.dropped) {
             dropped-button.checked = true;
+            watch-later-button.checked = false;
         }
 
         favorite-button.checked = s.favorite;
@@ -88,6 +91,7 @@ export component AddShowWindow inherits Rectangle {
                 height: 50px;
                 background-color: #232323;
                 visible: title.text != "";
+
                 clicked => {
                     show.title = title.text;
                     show.alternative-title = alternative-title.text;
@@ -110,6 +114,7 @@ export component AddShowWindow inherits Rectangle {
                 width: 50px;
                 height: 50px;
                 background-color: #232323;
+
                 clicked => {
                     cancel-show();
                 }
@@ -157,6 +162,7 @@ export component AddShowWindow inherits Rectangle {
                         icon: @image-url("assets/clock.png");
                         hint: "Plan to watch";
                         z: 100;
+
                         clicked => {
                             if (!self.checked) {
                                 watching-button.checked = false;
@@ -179,6 +185,7 @@ export component AddShowWindow inherits Rectangle {
                         icon: @image-url("assets/view.png");
                         hint: "Watching";
                         z: 99;
+
                         clicked => {
                             if (!self.checked) {
                                 watch-later-button.checked = false;
@@ -201,6 +208,7 @@ export component AddShowWindow inherits Rectangle {
                         icon: @image-url("assets/check-mark.png");
                         hint: "Completed";
                         z: 98;
+
                         clicked => {
                             if (!self.checked) {
                                 watch-later-button.checked = false;
@@ -223,6 +231,7 @@ export component AddShowWindow inherits Rectangle {
                         icon: @image-url("assets/love.png");
                         hint: "Favorite";
                         z: 97;
+
                         clicked => {
                             if (dropped-button.checked) {
                                 completed-button.checked = true;
@@ -242,6 +251,7 @@ export component AddShowWindow inherits Rectangle {
                         icon: @image-url("assets/dislike.png");
                         hint: "Dropped";
                         z: 96;
+
                         clicked => {
                             if (!self.checked) {
                                 watch-later-button.checked = false;

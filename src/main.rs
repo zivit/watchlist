@@ -277,7 +277,6 @@ fn status_changed(show: Show) -> Result<()> {
 
 fn favorite_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
-    println!("favorite: {}", show.favorite);
     let query = format!(
         "UPDATE list SET favorite = \"{}\" WHERE id = \"{}\";",
         show.favorite.to_string(),

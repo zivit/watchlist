@@ -65,17 +65,14 @@ export component AppWindow inherits Window {
 
         score-changed => {
             score-changed(show-window.show);
-            update-watchlist();
         }
 
         status-changed => {
             status-changed(show-window.show);
-            update-watchlist();
         }
 
         favorite-changed => {
             favorite-changed(show-window.show);
-            update-watchlist();
         }
 
         back => {
