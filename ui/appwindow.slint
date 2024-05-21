@@ -28,6 +28,7 @@ export component AppWindow inherits Window {
     callback score-changed(Show);
     callback status-changed(Show);
     callback favorite-changed(Show);
+    callback open-link(string);
 
     out property <ImageDetails> show-image;
     in property shows <=> watchlist.shows;
@@ -92,6 +93,10 @@ export component AppWindow inherits Window {
             update-watchlist();
             self.visible = false;
             watchlist.visible = true;
+        }
+
+        open-link(link) => {
+            open-link(link);
         }
     }
 

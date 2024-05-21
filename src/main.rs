@@ -332,6 +332,10 @@ fn main() -> Result<()> {
         let _ = favorite_changed(show).map_err(|e| eprintln!("Error: {}", e));
     });
 
+    ui.on_open_link(|link| {
+        let _ = open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
+    });
+
     let ui_weak = ui.as_weak();
     ui.on_update_watchlist(move || {
         let ui = ui_weak.unwrap();

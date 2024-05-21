@@ -12,6 +12,7 @@ export component ShowWindow inherits Rectangle {
     callback status-changed();
     callback favorite-changed();
     callback score-changed();
+    callback open-link(string);
 
     out property <Show> show;
     in property <image> show-image: Images.show-picture;
@@ -280,6 +281,26 @@ export component ShowWindow inherits Rectangle {
                             else {
                                 self.checked = false;
                             }
+                        }
+                    }
+                }
+
+                ToolButton {
+                    height: 32px;
+                    text: "Watch now";
+                    background-color: #2d883b;
+                    visible: show.link-to-show != "";
+
+                    clicked => {
+                        open-link(show.link-to-show);
+
+                        if (!watching-button.checked) {
+                            watching-button.checked = true;
+                            watch-later-button.checked = false;
+                            completed-button.checked = false;
+                            dropped-button.checked = false;
+                            show.status = Status.watching;
+                            status-changed();
                         }
                     }
                 }

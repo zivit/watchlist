@@ -66,7 +66,7 @@ export component ListElement inherits Rectangle {
                     spacing: 2px;
 
                     star := Image {
-                        width: 32px;
+                        width: 24px;
                         height: 24px;
                         source: Images.stars[show.score];
                         visible: show.score != 0;
@@ -127,7 +127,7 @@ export component ListElementCompact inherits Rectangle {
 
             HorizontalBox {
                 padding: 0px;
-                spacing: 5px;
+                spacing: 10px;
 
                 title := Text {
                     font-size: 16px;
@@ -143,13 +143,15 @@ export component ListElementCompact inherits Rectangle {
                 }
 
                 star := Image {
-                    width: 32px;
+                    width: 24px;
                     height: 24px;
                     source: Images.stars[show.score];
                     visible: show.score != 0;
                     vertical-alignment: center;
                     horizontal-alignment: center;
                 }
+
+                Rectangle { width: 1px; }
             }
         }
     }
