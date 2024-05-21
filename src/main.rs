@@ -39,18 +39,8 @@ fn create_database() -> Result<()> {
     Ok(())
 }
 
-fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
+fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
-    let query = "SELECT * FROM list
-        ORDER BY
-            CASE status
-                WHEN 1 THEN 0
-                WHEN 0 THEN 1
-                WHEN 2 THEN 2
-                WHEN 3 THEN 3
-                ELSE 4
-            END;
-    ";
     let mut statement = connection.prepare(query)?;
     let mut model = Vec::new();
 
@@ -102,6 +92,30 @@ fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
     let shows: Rc<VecModel<Show>> = Rc::new(VecModel::from(model));
     ui.set_shows(ModelRc::from(shows));
     Ok(())
+}
+
+fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
+    let query = "SELECT * FROM list
+        ORDER BY
+            CASE status
+                WHEN 1 THEN 0
+                WHEN 0 THEN 1
+                WHEN 2 THEN 2
+                WHEN 3 THEN 3
+                ELSE 4
+            END;
+    ";
+    execute_query(ui, query)
+}
+
+fn display_list_of_shows_found(ui: &AppWindow, text: &str) -> Result<()> {
+    let query = format!(
+        "SELECT * FROM list
+            WHERE
+            LOWER(title) LIKE \"%{0}%\" OR
+            LOWER(alternative_title) LIKE \"%{0}%\";",
+        text);
+    execute_query(ui, &query)
 }
 
 fn add_show(s: Show) -> Result<()> {
@@ -334,6 +348,12 @@ fn main() -> Result<()> {
 
     ui.on_open_link(|link| {
         let _ = open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
+    });
+
+    let ui_weak = ui.as_weak();
+    ui.on_search(move |text| {
+        let ui = ui_weak.unwrap();
+        let _ = display_list_of_shows_found(&ui, &text).map_err(|e| eprintln!("Error: {}", e));
     });
 
     let ui_weak = ui.as_weak();

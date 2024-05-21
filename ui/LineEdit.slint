@@ -11,6 +11,11 @@ export component LineEdit inherits Rectangle {
     vertical-stretch: 0;
 
     callback edited();
+    callback accepted();
+
+    public function text-focus() {
+        main-text.focus();
+    }
 
     placeholder := TextInput {
         color: main-text.color.darker(70%);
@@ -27,6 +32,10 @@ export component LineEdit inherits Rectangle {
 
         edited => {
             root.edited();
+        }
+
+        accepted => {
+            root.accepted();
         }
     }
 }

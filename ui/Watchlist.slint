@@ -3,6 +3,7 @@ import { ToolBar, ToolButton } from "ToolBar.slint";
 import { Show } from "Show.slint";
 import { Images } from "Global.slint";
 import { TextEdit } from "TextEdit.slint";
+import { LineEdit } from "LineEdit.slint";
 import { ListElement, ListElementCompact } from "ListElement.slint";
 
 export component Watchlist inherits Rectangle {
@@ -10,6 +11,10 @@ export component Watchlist inherits Rectangle {
     out property <bool> mode-compact: false;
     callback add-clicked();
     callback show-clicked(Show);
+    callback search(string);
+    callback search-cancel();
+
+    in-out property <bool> search-mode: false;
 
     VerticalBox {
         padding: 0px;
@@ -19,15 +24,67 @@ export component Watchlist inherits Rectangle {
             height: 50px;
             background: #232323;
 
-            mode-button := ToolButton {
-                hint: "Change view mode";
-                icon: mode-compact ? Images.list-compact : Images.list;
-                width: 50px;
-                height: 50px;
-                background-color: #232323;
+            if !search-mode : HorizontalBox {
+                padding: 0px;
+                spacing: 0px;
+                width: parent.width;
+                height: parent.height;
+                alignment: space-between;
 
-                clicked => {
-                    mode-compact = !mode-compact;
+                mode-button := ToolButton {
+                    hint: "Change view mode";
+                    icon: mode-compact ? Images.list-compact : Images.list;
+                    width: 50px;
+                    height: 50px;
+                    background-color: #232323;
+
+                    clicked => {
+                        mode-compact = !mode-compact;
+                    }
+                }
+
+                search-button := ToolButton {
+                    hint: "Search";
+                    hint-direction-left: true;
+                    icon: Images.search;
+                    width: 50px;
+                    height: 50px;
+                    background-color: #232323;
+
+                    clicked => {
+                        search-mode = true;
+                    }
+                }
+            }
+
+            if search-mode : HorizontalBox {
+                padding: 0px;
+                spacing: 0px;
+                width: parent.width;
+                height: parent.height;
+                alignment: stretch;
+
+                search-input := LineEdit {
+                    placeholder-text: "Enter the show name here";
+                    border-width: 0px;
+
+                    edited => {
+                        search(self.text);
+                    }
+                }
+
+                cancel-button := ToolButton {
+                    hint: "Cancel";
+                    hint-direction-left: true;
+                    icon: Images.cancel;
+                    width: 50px;
+                    height: 50px;
+                    background-color: #232323;
+
+                    clicked => {
+                        search-mode = false;
+                        search-cancel();
+                    }
                 }
             }
         }
@@ -80,10 +137,10 @@ export component Watchlist inherits Rectangle {
 
     add-button := ToolButton {
         icon: Images.add;
-        x: root.width - 100px;
-        y: root.height - 100px;
-        width: 70px;
-        height: 70px;
+        x: root.width - 80px;
+        y: root.height - 80px;
+        width: 50px;
+        height: 50px;
         background-color: #e36307;
         border-radius: self.width / 2;
         drop-shadow-color: #101010;
