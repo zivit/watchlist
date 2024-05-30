@@ -3,7 +3,7 @@ import { Show } from "Show.slint";
 import { AddShowWindow } from "AddShowWindow.slint";
 import { ShowWindow } from "ShowWindow.slint";
 import { ChangePictureDialog } from "ChangePictureDialog.slint";
-import { Images } from "Global.slint";
+import { Images, Palette } from "Global.slint";
 import { Watchlist } from "Watchlist.slint";
 
 export struct ImageDetails {
@@ -27,6 +27,8 @@ export component AppWindow inherits Window {
     callback update-watchlist();
     callback score-changed(Show);
     callback status-changed(Show);
+    callback season-changed(Show);
+    callback episode-changed(Show);
     callback favorite-changed(Show);
     callback open-link(string);
     callback search(string);
@@ -46,7 +48,7 @@ export component AppWindow inherits Window {
     }
 
     watchlist := Watchlist {
-        background: #313131;
+        background: Palette.secondary;
 
         add-clicked => {
             self.visible = false;
@@ -70,7 +72,7 @@ export component AppWindow inherits Window {
     }
 
     show-window := ShowWindow {
-        background: #313131;
+        background: Palette.secondary;
         visible: false;
 
         score-changed => {
@@ -83,6 +85,14 @@ export component AppWindow inherits Window {
 
         favorite-changed => {
             favorite-changed(show-window.show);
+        }
+
+        season-changed => {
+            season-changed(show-window.show);
+        }
+
+        episode-changed => {
+            episode-changed(show-window.show);
         }
 
         back => {
@@ -111,11 +121,11 @@ export component AppWindow inherits Window {
     }
 
     add-window := AddShowWindow {
-        background: #313131;
+        background: Palette.secondary;
         visible: false;
 
-        add-show(movie) => {
-            root.add-show(movie);
+        add-show(show) => {
+            root.add-show(show);
             update-watchlist();
             self.visible = false;
             watchlist.visible = true;

@@ -1,4 +1,5 @@
 import { ScrollView } from "std-widgets.slint";
+import { Palette } from "Global.slint";
 
 export component TextEdit inherits Rectangle {
     in property text <=> main-text.text;
@@ -6,8 +7,8 @@ export component TextEdit inherits Rectangle {
     in property placeholder-text <=> placeholder.text;
 
     preferred-height: 90px;
-    background: #232323;
-    border-color: #555555;
+    background: Palette.primary;
+    border-color: Palette.border;
     border-width: 1px;
     clip: true;
 
@@ -32,11 +33,11 @@ export component TextEdit inherits Rectangle {
         width: 20px;
         visible: self.height < main-text.preferred-height;
         background: root.background.brighter(10%);
-        border-color: #555555;
+        border-color: Palette.border;
         border-width: 1px;
 
         scroll-handle := Rectangle {
-            border-color: #555555;
+            border-color: Palette.border;
             border-width: 1px;
             background: touch.pressed ? root.background.brighter(90%) : touch.has-hover ? root.background.brighter(80%) : root.background.brighter(70%);
             height: root.height * coef;

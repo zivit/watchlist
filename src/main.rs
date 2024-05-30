@@ -1,3 +1,5 @@
+use chrono::prelude::*;
+
 use anyhow::{Context, Result};
 use downloader::{Download, Downloader};
 use image::EncodableLayout;
@@ -30,13 +32,44 @@ fn create_database() -> Result<()> {
                      score INTEGER,
                      favorite BOOL,
                      status INTEGER,
-                     image BLOB
-                 );
-    ";
+                     image BLOB,
+                     show_type INTEGER,
+                     season INTEGER,
+                     episodes_count INTEGER,
+                     episode INTEGER,
+                     release_time TEXT,
+                     schedule_monday INTEGER,
+                     schedule_tuesday INTEGER,
+                     schedule_wednesday INTEGER,
+                     schedule_thursday INTEGER,
+                     schedule_friday INTEGER,
+                     schedule_saturday INTEGER,
+                     schedule_sunday INTEGER
+                 );";
     connection
         .execute(query)
         .context("Failed to create table")?;
+
     Ok(())
+}
+
+fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) -> Result<bool> {
+    let parsed_date = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")
+        .with_context(|| format!("Failed to parse release time: {}", time))?;
+    let release_time: DateTime<Local> = Local.from_local_datetime(&parsed_date).unwrap();
+    let release_weekday = release_time.weekday() as i32;
+    let time_duration = Local::now().signed_duration_since(release_time);
+    let weeks_count = time_duration.num_weeks();
+    let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32;
+    let weeks_elapsed = release_time + chrono::Duration::weeks(weeks_count);
+    let time_duration = Local::now().signed_duration_since(weeks_elapsed);
+    let episodes_elapsed_second_part = schedule.iter()
+        .cycle()
+        .skip(release_weekday as usize)
+        .take(time_duration.num_days() as usize + 1)
+        .sum::<i32>();
+    println!("Elapsed: {}, current: {}", episodes_elapsed + episodes_elapsed_second_part, episode);
+    Ok(episodes_elapsed + episodes_elapsed_second_part > episode)
 }
 
 fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
@@ -72,6 +105,29 @@ fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
             3 => Status::Dropped,
             _ => Status::WatchLater,
         };
+        let sht = statement.read::<i64, _>("show_type")?;
+        let show_type = match sht {
+            1 => ShowType::Film,
+            2 => ShowType::Cartoon,
+            3 => ShowType::Anime,
+            _ => ShowType::Serial,
+        };
+
+        let episode = statement.read::<i64, _>("episode")? as i32;
+        let episodes_count = statement.read::<i64, _>("episodes_count")? as i32;
+        let schedule_monday = statement.read::<i64, _>("schedule_monday")? as i32;
+        let schedule_tuesday = statement.read::<i64, _>("schedule_tuesday")? as i32;
+        let schedule_wednesday = statement.read::<i64, _>("schedule_wednesday")? as i32;
+        let schedule_thursday = statement.read::<i64, _>("schedule_thursday")? as i32;
+        let schedule_friday = statement.read::<i64, _>("schedule_friday")? as i32;
+        let schedule_saturday = statement.read::<i64, _>("schedule_saturday")? as i32;
+        let schedule_sunday = statement.read::<i64, _>("schedule_sunday")? as i32;
+        let release_time = statement.read::<String, _>("release_time")?;
+        let new_episodes_available = check_new_episodes_available(&release_time, episode,
+            [schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday,
+            schedule_friday, schedule_saturday, schedule_sunday])
+            .unwrap_or_default();
+            // .map_or_else(|e| { eprintln!("Error: {}", e); false }, |v| v);
 
         let show = Show {
             id: statement.read::<i64, _>("id")? as i32,
@@ -84,6 +140,19 @@ fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
             favorite: statement.read::<String, _>("favorite")?.eq("true"),
             status,
             picture,
+            show_type,
+            season: statement.read::<i64, _>("season")? as i32,
+            episodes_count,
+            episode,
+            release_time: release_time.into(),
+            schedule_monday,
+            schedule_tuesday,
+            schedule_wednesday,
+            schedule_thursday,
+            schedule_friday,
+            schedule_saturday,
+            schedule_sunday,
+            new_episodes_available,
             ..Default::default()
         };
         model.push(show);
@@ -126,6 +195,13 @@ fn add_show(s: Show) -> Result<()> {
         Status::Dropped => 3,
     };
 
+    let show_type = match s.show_type {
+        ShowType::Serial => 0,
+        ShowType::Film => 1,
+        ShowType::Cartoon => 2,
+        ShowType::Anime => 3,
+    };
+
     let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
 
     if s.id != 0 {
@@ -138,8 +214,20 @@ fn add_show(s: Show) -> Result<()> {
                 link_to_show = \"{}\",
                 score = \"{}\",
                 favorite = \"{}\",
-                status = \"{}\"
-                WHERE id = {};
+                status = \"{}\",
+                season = \"{}\",
+                episodes_count = \"{}\",
+                episode = \"{}\",
+                release_time = \"{}\",
+                schedule_monday = \"{}\",
+                schedule_tuesday = \"{}\",
+                schedule_wednesday = \"{}\",
+                schedule_thursday = \"{}\",
+                schedule_friday = \"{}\",
+                schedule_saturday = \"{}\",
+                schedule_sunday = \"{}\",
+                show_type = \"{}\"
+            WHERE id = {};
             ",
             s.title.to_string(),
             s.alternative_title.to_string(),
@@ -149,14 +237,31 @@ fn add_show(s: Show) -> Result<()> {
             s.score.to_string(),
             s.favorite.to_string(),
             status,
+            s.season,
+            s.episodes_count,
+            s.episode,
+            s.release_time.to_string(),
+            s.schedule_monday,
+            s.schedule_tuesday,
+            s.schedule_wednesday,
+            s.schedule_thursday,
+            s.schedule_friday,
+            s.schedule_saturday,
+            s.schedule_sunday,
+            show_type,
             s.id,
         );
-        connection.execute(query).context("Failed to add show")?;
+        connection.execute(query).context("Failed to update show")?;
     } else {
         let query = format!(
-            "REPLACE INTO list(title, alternative_title, release_date,
-                             about, link_to_show, score, favorite, status) VALUES
-                             (\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\");",
+            "REPLACE INTO list(title, alternative_title, release_date, about, link_to_show,
+                            score, favorite, status, season, episodes_count, episode, release_time,
+                            schedule_monday, schedule_tuesday, schedule_wednesday,
+                            schedule_thursday, schedule_friday, schedule_saturday,
+                            schedule_sunday, show_type) VALUES
+                            (\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
+                            \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
+                            \"{}\", \"{}\", \"{}\", \"{}\");",
             s.title.to_string(),
             s.alternative_title.to_string(),
             s.release_date.to_string(),
@@ -165,6 +270,18 @@ fn add_show(s: Show) -> Result<()> {
             s.score.to_string(),
             s.favorite.to_string(),
             status,
+            s.season,
+            s.episodes_count,
+            s.episode,
+            s.release_time.to_string(),
+            s.schedule_monday,
+            s.schedule_tuesday,
+            s.schedule_wednesday,
+            s.schedule_thursday,
+            s.schedule_friday,
+            s.schedule_saturday,
+            s.schedule_sunday,
+            show_type,
         );
         connection.execute(query).context("Failed to add show")?;
     }
@@ -302,6 +419,32 @@ fn favorite_changed(show: Show) -> Result<()> {
     Ok(())
 }
 
+fn season_changed(show: Show) -> Result<()> {
+    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let query = format!(
+        "UPDATE list SET season = \"{}\" WHERE id = \"{}\";",
+        show.season.to_string(),
+        show.id,
+    );
+    connection
+        .execute(query)
+        .with_context(|| format!("Failed to change season to {}", show.score))?;
+    Ok(())
+}
+
+fn episode_changed(show: Show) -> Result<()> {
+    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let query = format!(
+        "UPDATE list SET episode = \"{}\" WHERE id = \"{}\";",
+        show.episode.to_string(),
+        show.id,
+    );
+    connection
+        .execute(query)
+        .with_context(|| format!("Failed to change episode to {}", show.score))?;
+    Ok(())
+}
+
 fn main() -> Result<()> {
     create_database()?;
     let ui = AppWindow::new()?;
@@ -344,6 +487,14 @@ fn main() -> Result<()> {
 
     ui.on_favorite_changed(|show| {
         let _ = favorite_changed(show).map_err(|e| eprintln!("Error: {}", e));
+    });
+
+    ui.on_score_changed(|show| {
+        let _ = season_changed(show).map_err(|e| eprintln!("Error: {}", e));
+    });
+
+    ui.on_episode_changed(|show| {
+        let _ = episode_changed(show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_open_link(|link| {

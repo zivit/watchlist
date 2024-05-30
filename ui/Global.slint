@@ -12,6 +12,10 @@ export global Images {
     out property <image> list: @image-url("assets/list.png");
     out property <image> list-compact: @image-url("assets/list_compact.png");
     out property <image> search: @image-url("assets/search.png");
+    out property <image> up: @image-url("assets/up-arrow.png");
+    out property <image> down: @image-url("assets/down-arrow.png");
+    out property <image> left: @image-url("assets/left-arrow.png");
+    out property <image> right: @image-url("assets/right-arrow.png");
     out property <[image]> stars: [
         @image-url("assets/stars/0.png"),
         @image-url("assets/stars/1.png"),
@@ -25,5 +29,20 @@ export global Images {
         @image-url("assets/stars/9.png"),
         @image-url("assets/stars/10.png"),
     ];
+}
+
+export global Palette {
+    out property <color> primary: #232323;
+    out property <color> secondary: #313131;
+    out property <color> border: #555555;
+    out property <color> text: #f0f0f0;
+    out property <color> placeholder: #a0a0a0;
+
+    out property <color> yellow: #a7a341;
+    out property <color> green: #2d883b;
+    out property <color> blue: #417ca6;
+    out property <color> light-blue: #79C9FF;
+    out property <color> purple: #a240ab;
+    out property <color> red: #942e2e;
 }
 

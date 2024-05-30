@@ -1,11 +1,14 @@
+import { Palette } from "Global.slint";
+
 export component LineEdit inherits Rectangle {
     in property text <=> main-text.text;
     in property text-color <=> main-text.color;
     in property placeholder-text <=> placeholder.text;
+    in property input-type <=> main-text.input-type;
 
     preferred-height: 30px;
-    background: #232323;
-    border-color: #555555;
+    background: Palette.primary;
+    border-color: Palette.border;
     border-width: 1px;
     clip: true;
     vertical-stretch: 0;

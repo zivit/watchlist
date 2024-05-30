@@ -1,0 +1,133 @@
+import { HorizontalBox } from "std-widgets.slint";
+import { ToolButton } from "ToolBar.slint";
+import { Images, Palette } from "Global.slint";
+
+enum SpinInputType {
+    numbers,
+    text,
+}
+
+component Content inherits Rectangle {
+    in property text <=> t.text;
+    in property text-color <=> t.color;
+
+    HorizontalLayout {
+        alignment: center;
+
+        VerticalLayout {
+            alignment: center;
+
+            t := Text {
+                color: white;
+            }
+        }
+    }
+}
+
+export component SpinBox {
+    in property <Orientation> orientation: Orientation.horizontal;
+    in property <SpinInputType> input-type: SpinInputType.numbers;
+    in property <[string]> list;
+    in property <int> min;
+    in-out property <int> value: min;
+    in property <int> max: 2147483647;
+    in property <string> hint;
+    in property <color> text-color: white;
+    in property <color> background-color: Palette.primary;
+
+    callback changed(int);
+
+    public function decrement() {
+        if (input-type == SpinInputType.numbers) {
+            if (value - 1 >= min) {
+                value = value - 1;
+                changed(value);
+            }
+        }
+        else {
+            if (value - 1 < 0) {
+                value = list.length - 1;
+            }
+            else {
+                value = value - 1;
+            }
+            changed(value);
+        }
+    }
+
+    public function increment() {
+        if (input-type == SpinInputType.numbers) {
+            if (value + 1 <= max) {
+                value = value + 1;
+                changed(value);
+            }
+        }
+        else {
+            if (value + 1 > list.length - 1) {
+                value = 0;
+            }
+            else {
+                value = value + 1;
+            }
+            changed(value);
+        }
+    }
+
+    if orientation == Orientation.horizontal: HorizontalLayout {
+        vertical-stretch: 0;
+
+        ToolButton {
+            icon: Images.left;
+            background-color: root.background-color;
+            width: self.height;
+
+            clicked => {
+                decrement();
+            }
+        }
+
+        Content {
+            background: background-color;
+            text: root.input-type == SpinInputType.text ? list[value] : hint + value;
+            text-color: root.text-color;
+        }
+
+        ToolButton {
+            icon: Images.right;
+            background-color: root.background-color;
+            width: self.height;
+
+            clicked => {
+                increment();
+            }
+        }
+    }
+
+    if orientation == Orientation.vertical: VerticalLayout {
+        ToolButton {
+            icon: Images.up;
+            background-color: root.background-color;
+            height: self.width;
+
+            clicked => {
+                increment();
+            }
+        }
+
+        Content {
+            text: root.input-type == SpinInputType.text ? list[value] : hint + value;
+            text-color: root.text-color;
+            background: root.background-color;
+        }
+
+        ToolButton {
+            icon: Images.down;
+            background-color: root.background-color;
+            height: self.width;
+
+            clicked => {
+                decrement();
+            }
+        }
+    }
+}

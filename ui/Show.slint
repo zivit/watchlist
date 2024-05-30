@@ -5,6 +5,13 @@ export enum Status {
     dropped,
 }
 
+export enum ShowType {
+    serial,
+    film,
+    cartoon,
+    anime,
+}
+
 export struct Show {
     id: int,
     title: string,
@@ -17,5 +24,18 @@ export struct Show {
     status: Status,
     link-to-picture: string,
     picture: image,
+    show-type: ShowType,
+    season: int,
+    episodes_count: int,
+    episode: int,
+    release-time: string,
+    schedule-monday: int,
+    schedule-tuesday: int,
+    schedule-wednesday: int,
+    schedule-thursday: int,
+    schedule-friday: int,
+    schedule-saturday: int,
+    schedule-sunday: int,
+    new-episodes-available: bool,
 }
 

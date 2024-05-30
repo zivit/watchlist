@@ -1,0 +1,82 @@
+import { VerticalBox, HorizontalBox } from "std-widgets.slint";
+import { Palette } from "Global.slint";
+
+component RadioButton {
+    in property text <=> t.text;
+    in property color <=> t.color;
+    in property <bool> checked;
+    in-out property <int> index;
+    callback clicked(int);
+
+    HorizontalBox {
+        spacing: 5px;
+        padding: 0px;
+
+        VerticalLayout {
+            alignment: center;
+
+            idicator := Rectangle {
+                width: 20px;
+                height: 20px;
+                background: Palette.primary;
+                border-color: Palette.border;
+                border-width: 1px;
+                border-radius: self.width / 2;
+
+                Rectangle {
+                    visible: checked;
+                    width: parent.width / 2;
+                    height: parent.height / 2;
+                    x: self.width / 2;
+                    y: self.height / 2;
+                    background: #a5a5a5;
+                    border-radius: self.width / 2;
+                }
+            }
+        }
+
+        t := Text {
+            color: white;
+            vertical-alignment: center;
+        }
+    }
+
+    TouchArea {
+        clicked => {
+            clicked(index);
+        }
+    }
+}
+
+export component RadioButtonsGroup {
+    in property <[string]> list;
+    in property <Orientation> orientation: Orientation.vertical;
+    in-out property <int> index: 0;
+
+    if orientation == Orientation.vertical: VerticalBox {
+        padding: 0px;
+
+        for item[i] in list: RadioButton {
+            text: item;
+            index: i;
+            checked: self.index == root.index;
+
+            clicked(index) => {
+                root.index = index;
+            }
+        }
+    }
+    if orientation == Orientation.horizontal: HorizontalBox {
+        padding: 0px;
+
+        for item[i] in list: RadioButton {
+            text: item;
+            index: i;
+            checked: self.index == root.index;
+
+            clicked(index) => {
+                root.index = index;
+            }
+        }
+    }
+}

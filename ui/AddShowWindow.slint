@@ -1,10 +1,12 @@
 import { VerticalBox, HorizontalBox, ComboBox } from "std-widgets.slint";
 import { ToolBar, ToolButton } from "ToolBar.slint";
-import { Show, Status } from "Show.slint";
-import { Images } from "Global.slint";
+import { Show, Status, ShowType } from "Show.slint";
+import { Images, Palette } from "Global.slint";
 import { ScoreWidget } from "ScoreWidget.slint";
 import { LineEdit } from "LineEdit.slint";
 import { TextEdit } from "TextEdit.slint";
+import { SpinBox } from "SpinBox.slint";
+import { RadioButtonsGroup } from "RadioButtonsGroup.slint";
 
 export component AddShowWindow inherits Rectangle {
     callback add-show(Show);
@@ -17,6 +19,8 @@ export component AddShowWindow inherits Rectangle {
     property <Status> status: Status.watch-later;
     in-out property show-image <=> show-image-container.source;
     in property <string> link-to-picture;
+    property <[int]> scheldule: [0, 0, 0, 0, 0, 0, 0];
+    property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
     public function reset() {
         title.text = "";
@@ -31,6 +35,11 @@ export component AddShowWindow inherits Rectangle {
         completed-button.checked = false;
         favorite-button.checked = false;
         dropped-button.checked = false;
+        show-type.index = 0;
+        season.text = "";
+        episodes-count.text = "";
+        release-time.text = "";
+        scheldule = [0, 0, 0, 0, 0, 0, 0];
     }
 
     public function set-show(s: Show) {
@@ -43,6 +52,31 @@ export component AddShowWindow inherits Rectangle {
         about-show.text = s.about;
         link-to-view.text = s.link-to-show;
         score-widget.score = s.score;
+
+        if (s.show-type == ShowType.serial) {
+            show-type.index = 0;
+        }
+        else if (s.show-type == ShowType.film) {
+            show-type.index = 1;
+        }
+        else if (s.show-type == ShowType.cartoon) {
+            show-type.index = 2;
+        }
+        else if (s.show-type == ShowType.anime) {
+            show-type.index = 3;
+        }
+
+        season.text = s.season;
+        episodes-count.text = s.episodes-count;
+        release-time.text = s.release-time;
+
+        scheldule[0] = s.schedule-monday;
+        scheldule[1] = s.schedule-tuesday;
+        scheldule[2] = s.schedule-wednesday;
+        scheldule[3] = s.schedule-thursday;
+        scheldule[4] = s.schedule-friday;
+        scheldule[5] = s.schedule-saturday;
+        scheldule[6] = s.schedule-sunday;
 
         watch-later-button.checked = false;
         watching-button.checked = false;
@@ -82,14 +116,14 @@ export component AddShowWindow inherits Rectangle {
 
         ToolBar {
             height: 50px;
-            background: #232323;
+            background: Palette.primary;
 
             add-button := ToolButton {
                 hint: "Add";
                 icon: @image-url("assets/check.png");
                 width: 50px;
                 height: 50px;
-                background-color: #232323;
+                background-color: Palette.primary;
                 visible: title.text != "";
 
                 clicked => {
@@ -103,6 +137,37 @@ export component AddShowWindow inherits Rectangle {
                     show.status = status;
                     show.link-to-picture = root.link-to-picture;
                     show.picture = show-image;
+
+                    if (show-type.index == 0) {
+                        show.show-type = ShowType.serial;
+                    }
+                    else if (show-type.index == 1) {
+                        show.show-type = ShowType.film;
+                    }
+                    else if (show-type.index == 2) {
+                        show.show-type = ShowType.cartoon;
+                    }
+                    else if (show-type.index == 3) {
+                        show.show-type = ShowType.anime;
+                    }
+
+                    if (season.text.is-float()) {
+                        show.season = season.text.to-float();
+                    }
+
+                    if (episodes-count.text.is-float()) {
+                        show.episodes-count = episodes-count.text.to-float();
+                    }
+
+                    show.release-time = release-time.text;
+                    show.schedule-monday = scheldule[0];
+                    show.schedule-tuesday = scheldule[1];
+                    show.schedule-wednesday = scheldule[2];
+                    show.schedule-thursday = scheldule[3];
+                    show.schedule-friday = scheldule[4];
+                    show.schedule-saturday = scheldule[5];
+                    show.schedule-sunday = scheldule[6];
+
                     add-show(show);
                 }
             }
@@ -113,7 +178,7 @@ export component AddShowWindow inherits Rectangle {
                 icon: @image-url("assets/close.png");
                 width: 50px;
                 height: 50px;
-                background-color: #232323;
+                background-color: Palette.primary;
 
                 clicked => {
                     cancel-show();
@@ -153,8 +218,8 @@ export component AddShowWindow inherits Rectangle {
                     spacing: 0px;
 
                     watch-later-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #a7a341;
+                        background-color: Palette.primary;
+                        checked-color: Palette.yellow;
                         checkable: true;
                         checked: true;
                         width: 36px;
@@ -176,8 +241,8 @@ export component AddShowWindow inherits Rectangle {
                         }
                     }
                     watching-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #2d883b;
+                        background-color: Palette.primary;
+                        checked-color: Palette.green;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -199,8 +264,8 @@ export component AddShowWindow inherits Rectangle {
                         }
                     }
                     completed-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #417ca6;
+                        background-color: Palette.primary;
+                        checked-color: Palette.blue;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -222,7 +287,7 @@ export component AddShowWindow inherits Rectangle {
                         }
                     }
                     favorite-button := ToolButton {
-                        background-color: #232323;
+                        background-color: Palette.primary;
                         checked-color: #a240ab;
                         checkable: true;
                         checked: false;
@@ -242,7 +307,7 @@ export component AddShowWindow inherits Rectangle {
                         }
                     }
                     dropped-button := ToolButton {
-                        background-color: #232323;
+                        background-color: Palette.primary;
                         checked-color: #942e2e;
                         checkable: true;
                         checked: false;
@@ -275,11 +340,10 @@ export component AddShowWindow inherits Rectangle {
                 alignment: stretch;
 
                 link-to-view := LineEdit {
-                    placeholder-text: "Link for viewing (https://)";
+                    placeholder-text: "Link for watching (https://)";
 
                     edited => {
                         import-button.visible = root.link-changed(self.text);
-                        // import-button.visible = true;
                     }
 
                     import-button := ToolButton {
@@ -288,7 +352,7 @@ export component AddShowWindow inherits Rectangle {
                         x: parent.width - self.width;
                         width: 36px;
                         height: 30px;
-                        background-color: #232323;
+                        background-color: Palette.primary;
                         border-color: parent.border-color;
                         border-width: parent.border-width;
 
@@ -319,6 +383,12 @@ export component AddShowWindow inherits Rectangle {
                     }
                 }
 
+                show-type := RadioButtonsGroup {
+                    list: ["Serial", "Film", "Cartoon", "Anime"];
+                    orientation: horizontal;
+                    height: 20px;
+                }
+
                 title := LineEdit {
                     placeholder-text: "Title";
                 }
@@ -331,8 +401,56 @@ export component AddShowWindow inherits Rectangle {
                     placeholder-text: "Release date";
                 }
 
+                HorizontalBox {
+                    padding: 0px;
+                    spacing: 5px;
+
+                    season := LineEdit {
+                        placeholder-text: "Season";
+                        input-type: number;
+                    }
+
+                    episodes-count := LineEdit {
+                        placeholder-text: "Episodes count";
+                        input-type: number;
+                    }
+                }
+
                 about-show := TextEdit {
                     placeholder-text: "About";
+                }
+
+                VerticalBox {
+                    padding: 0px;
+                    spacing: 5px;
+
+                    Text {
+                        text: "Schedule";
+                        height: 14px;
+                    }
+
+                    release-time := LineEdit {
+                        placeholder-text: "Release time (format YYYY-MM-DD hh:mm, for example \"2024-05-30 11:00\")";
+                        vertical-stretch: 0;
+                        height: 30px;
+
+                        edited => {
+                            release-date.text = release-time.text;
+                        }
+                    }
+
+                    HorizontalLayout {
+                        for day[i] in scheldule: SpinBox {
+                            hint: days[i] + " ";
+                            height: 30px;
+                            background-color: self.value > 0 ? Palette.blue : Palette.primary;
+                            value: scheldule[i];
+
+                            changed(value) => {
+                                scheldule[i] = value;
+                            }
+                        }
+                    }
                 }
             }
         }

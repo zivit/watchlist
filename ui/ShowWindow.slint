@@ -1,7 +1,8 @@
 import { VerticalBox, HorizontalBox, ComboBox } from "std-widgets.slint";
 import { ToolBar, ToolButton } from "ToolBar.slint";
-import { Show, Status } from "Show.slint";
-import { Images } from "Global.slint";
+import { Show, Status, ShowType } from "Show.slint";
+import { SpinBox } from "SpinBox.slint";
+import { Images, Palette } from "Global.slint";
 import { ScoreWidget } from "ScoreWidget.slint";
 import { ShowImageFullScreen } from "ShowImageFullScreen.slint";
 
@@ -12,6 +13,8 @@ export component ShowWindow inherits Rectangle {
     callback status-changed();
     callback favorite-changed();
     callback score-changed();
+    callback season-changed();
+    callback episode-changed();
     callback open-link(string);
 
     out property <Show> show;
@@ -61,6 +64,8 @@ export component ShowWindow inherits Rectangle {
             favorite-button.checked = false;
         }
 
+        season.value = show.season;
+        episode.value = show.episode;
         title.text = show.title;
         alternative-title.text = show.alternative-title;
         release-date.text = show.release-date;
@@ -73,7 +78,7 @@ export component ShowWindow inherits Rectangle {
 
         ToolBar {
             height: 50px;
-            background: #232323;
+            background: Palette.primary;
 
             Rectangle {
                 width: 100px;
@@ -84,7 +89,7 @@ export component ShowWindow inherits Rectangle {
                         icon: Images.edit;
                         width: 50px;
                         height: 50px;
-                        background-color: #232323;
+                        background-color: Palette.primary;
                         z: 1;
 
                         clicked => {
@@ -98,7 +103,7 @@ export component ShowWindow inherits Rectangle {
                         icon: sure ? Images.remove_sure : Images.remove;
                         width: 50px;
                         height: 50px;
-                        background-color: #232323;
+                        background-color: Palette.primary;
                         property <bool> sure: false;
 
                         clicked => {
@@ -120,7 +125,7 @@ export component ShowWindow inherits Rectangle {
                 icon: Images.cancel;
                 width: 50px;
                 height: 50px;
-                background-color: #232323;
+                background-color: Palette.primary;
 
                 clicked => {
                     remove-button.sure = false;
@@ -165,8 +170,8 @@ export component ShowWindow inherits Rectangle {
                     spacing: 0px;
 
                     watch-later-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #a7a341;
+                        background-color: Palette.primary;
+                        checked-color: Palette.yellow;
                         checkable: true;
                         checked: true;
                         width: 36px;
@@ -189,8 +194,8 @@ export component ShowWindow inherits Rectangle {
                     }
 
                     watching-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #2d883b;
+                        background-color: Palette.primary;
+                        checked-color: Palette.green;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -212,8 +217,8 @@ export component ShowWindow inherits Rectangle {
                         }
                     }
                     completed-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #417ca6;
+                        background-color: Palette.primary;
+                        checked-color: Palette.blue;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -235,8 +240,8 @@ export component ShowWindow inherits Rectangle {
                         }
                     }
                     favorite-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #a240ab;
+                        background-color: Palette.primary;
+                        checked-color: Palette.purple;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -258,8 +263,8 @@ export component ShowWindow inherits Rectangle {
                         }
                     }
                     dropped-button := ToolButton {
-                        background-color: #232323;
-                        checked-color: #942e2e;
+                        background-color: Palette.primary;
+                        checked-color: Palette.red;
                         checkable: true;
                         checked: false;
                         width: 36px;
@@ -285,11 +290,39 @@ export component ShowWindow inherits Rectangle {
                     }
                 }
 
-                ToolButton {
+                season := SpinBox {
+                    height: 32px;
+                    hint: "Season ";
+                    min: 1;
+                    value: 1;
+                    background-color: Palette.blue;
+
+                    changed(value) => {
+                        show.season = value;
+                        season-changed();
+                        episode.value = 1;
+                        episode-changed();
+                    }
+                }
+
+                episode := SpinBox {
+                    height: 32px;
+                    hint: "Episode ";
+                    min: 1;
+                    value: 1;
+                    max: show.episodes-count;
+                    background-color: Palette.blue;
+
+                    changed(value) => {
+                        show.episode = value;
+                        episode-changed();
+                    }
+                }
+
+                if show.link-to-show != "": ToolButton {
                     height: 32px;
                     text: "Watch now";
-                    background-color: #2d883b;
-                    visible: show.link-to-show != "";
+                    background-color: Palette.green;
 
                     clicked => {
                         open-link(show.link-to-show);

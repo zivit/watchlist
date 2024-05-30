@@ -1,5 +1,5 @@
 import { Button, VerticalBox, HorizontalBox, LineEdit, StandardButton } from "std-widgets.slint";
-import { Images } from "Global.slint";
+import { Images, Palette } from "Global.slint";
 
 export component ChangePictureDialog inherits Dialog {
     callback load-image(string) -> image;
@@ -19,7 +19,7 @@ export component ChangePictureDialog inherits Dialog {
         TouchArea {}
 
         Rectangle {
-            background: #313131;
+            background: Palette.secondary;
             width: 470px;
             height: 140px;
             x: root.width * 1px / 2px - self.width * 1px / 2px;
@@ -29,7 +29,7 @@ export component ChangePictureDialog inherits Dialog {
                 width: parent.width;
                 height: 35px;
                 y: 0;
-                background: #232323;
+                background: Palette.primary;
             }
 
             VerticalBox {

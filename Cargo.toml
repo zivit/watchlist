@@ -9,12 +9,11 @@ build = "build.rs"
 
 [dependencies]
 anyhow = "1.0"
+chrono = "0.4.38"
 downloader = "0.2"
 image = "0.25"
 open = "5.1"
 regex = "1.10"
-# reqwest = { version = "0.11", features = ["blocking"] }
-# scraper = "0.12"
 slint = "1.4"
 sqlite = "0.34"
 webpage = "2.0"
