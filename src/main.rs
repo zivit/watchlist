@@ -1,6 +1,6 @@
 use chrono::prelude::*;
 
-use anyhow::{Context, Result};
+use anyhow::{bail, Context, Result};
 use downloader::{Download, Downloader};
 use image::EncodableLayout;
 use slint::{ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
@@ -56,19 +56,24 @@ fn create_database() -> Result<()> {
 fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) -> Result<bool> {
     let parsed_date = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")
         .with_context(|| format!("Failed to parse release time: {}", time))?;
-    let release_time: DateTime<Local> = Local.from_local_datetime(&parsed_date).unwrap();
-    let release_weekday = release_time.weekday() as i32;
-    let time_duration = Local::now().signed_duration_since(release_time);
-    let weeks_count = time_duration.num_weeks();
-    let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32;
-    let weeks_elapsed = release_time + chrono::Duration::weeks(weeks_count);
-    let time_duration = Local::now().signed_duration_since(weeks_elapsed);
+    let local_time;
+    match Local.from_local_datetime(&parsed_date) {
+        chrono::offset::LocalResult::Single(t) => local_time = t,
+        chrono::offset::LocalResult::Ambiguous(_, _) => bail!("Failed to convert naive time to local time"),
+        chrono::offset::LocalResult::None => bail!("Failed to convert naive time to local time"),
+    }
+    let release_time: DateTime<Local> = local_time;
+    let time_elapsed = Local::now().signed_duration_since(release_time);
+    let weeks_count = time_elapsed.num_weeks();
+    let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32 + 1;
+    let weeks_elapsed = release_time + chrono::Duration::weeks(weeks_count) + chrono::Duration::days(1);
+    let day_of_last_elapsed_episode = weeks_elapsed.weekday();
+    let time_elapsed = Local::now().signed_duration_since(weeks_elapsed);
     let episodes_elapsed_second_part = schedule.iter()
         .cycle()
-        .skip(release_weekday as usize)
-        .take(time_duration.num_days() as usize + 1)
+        .take(time_elapsed.num_days() as usize)
+        .skip(day_of_last_elapsed_episode as usize)
         .sum::<i32>();
-    println!("Elapsed: {}, current: {}", episodes_elapsed + episodes_elapsed_second_part, episode);
     Ok(episodes_elapsed + episodes_elapsed_second_part > episode)
 }
 
@@ -202,6 +207,10 @@ fn add_show(s: Show) -> Result<()> {
         ShowType::Anime => 3,
     };
 
+    let title = s.title.to_string().replace("\"", "“");
+    let alternative_title = s.alternative_title.to_string().replace("\"", "“");
+    let about = s.about.to_string().replace("\"", "“");
+
     let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
 
     if s.id != 0 {
@@ -229,10 +238,10 @@ fn add_show(s: Show) -> Result<()> {
                 show_type = \"{}\"
             WHERE id = {};
             ",
-            s.title.to_string(),
-            s.alternative_title.to_string(),
+            title,
+            alternative_title,
             s.release_date.to_string(),
-            s.about.to_string(),
+            about,
             s.link_to_show.to_string(),
             s.score.to_string(),
             s.favorite.to_string(),
@@ -262,10 +271,10 @@ fn add_show(s: Show) -> Result<()> {
                             (\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
                             \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
                             \"{}\", \"{}\", \"{}\", \"{}\");",
-            s.title.to_string(),
-            s.alternative_title.to_string(),
+            title,
+            alternative_title,
             s.release_date.to_string(),
-            s.about.to_string(),
+            about,
             s.link_to_show.to_string(),
             s.score.to_string(),
             s.favorite.to_string(),
@@ -489,7 +498,7 @@ fn main() -> Result<()> {
         let _ = favorite_changed(show).map_err(|e| eprintln!("Error: {}", e));
     });
 
-    ui.on_score_changed(|show| {
+    ui.on_season_changed(|show| {
         let _ = season_changed(show).map_err(|e| eprintln!("Error: {}", e));
     });
 
@@ -515,6 +524,11 @@ fn main() -> Result<()> {
 
     ui.on_can_import_show_by_link(|link| check_link_is_importable(&link));
     ui.on_import_clicked(|link| import_clicked(&link));
+
+    ui.on_get_weekday(|| {
+        Local::now().weekday() as i32
+    });
+
     ui.run()?;
     Ok(())
 }

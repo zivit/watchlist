@@ -7,7 +7,7 @@ import { ScoreWidget } from "ScoreWidget.slint";
 import { ShowImageFullScreen } from "ShowImageFullScreen.slint";
 
 export component ShowWindow inherits Rectangle {
-    callback back();
+    callback back(bool);
     callback edit(Show);
     callback remove(Show);
     callback status-changed();
@@ -17,8 +17,13 @@ export component ShowWindow inherits Rectangle {
     callback episode-changed();
     callback open-link(string);
 
+    property <[int]> week;
+    in property <int> day-now;
+    property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
+
     out property <Show> show;
     in property <image> show-image: Images.show-picture;
+    property <bool> show-changed: false;
 
     public function display-show(show: Show) {
         root.show = show;
@@ -70,6 +75,14 @@ export component ShowWindow inherits Rectangle {
         alternative-title.text = show.alternative-title;
         release-date.text = show.release-date;
         about-show.text = show.about;
+
+        if (show.release-time != "") {
+            week = [show.schedule-monday, show.schedule-tuesday, show.schedule-wednesday,
+                show.schedule-thursday, show.schedule-friday, show.schedule-saturday, show.schedule-sunday];
+        }
+        else {
+            week = [];
+        }
     }
 
     VerticalBox {
@@ -129,7 +142,8 @@ export component ShowWindow inherits Rectangle {
 
                 clicked => {
                     remove-button.sure = false;
-                    back();
+                    back(show-changed);
+                    show-changed = false;
                 }
             }
         }
@@ -161,6 +175,7 @@ export component ShowWindow inherits Rectangle {
                     score-changed(score) => {
                         show.score = score;
                         root.score-changed();
+                        show-changed = true;
                     }
                 }
 
@@ -186,6 +201,7 @@ export component ShowWindow inherits Rectangle {
                                 dropped-button.checked = false;
                                 show.status = Status.watch-later;
                                 status-changed();
+                                show-changed = true;
                             }
                             else {
                                 self.checked = false;
@@ -210,6 +226,7 @@ export component ShowWindow inherits Rectangle {
                                 dropped-button.checked = false;
                                 show.status = Status.watching;
                                 status-changed();
+                                show-changed = true;
                             }
                             else {
                                 self.checked = false;
@@ -233,6 +250,7 @@ export component ShowWindow inherits Rectangle {
                                 dropped-button.checked = false;
                                 show.status = Status.completed;
                                 status-changed();
+                                show-changed = true;
                             }
                             else {
                                 self.checked = false;
@@ -260,6 +278,7 @@ export component ShowWindow inherits Rectangle {
                             }
                             show.favorite = !self.checked;
                             favorite-changed();
+                            show-changed = true;
                         }
                     }
                     dropped-button := ToolButton {
@@ -282,6 +301,7 @@ export component ShowWindow inherits Rectangle {
                                 show.favorite = false;
                                 status-changed();
                                 favorite-changed();
+                                show-changed = true;
                             }
                             else {
                                 self.checked = false;
@@ -302,6 +322,7 @@ export component ShowWindow inherits Rectangle {
                         season-changed();
                         episode.value = 1;
                         episode-changed();
+                        show-changed = true;
                     }
                 }
 
@@ -316,6 +337,7 @@ export component ShowWindow inherits Rectangle {
                     changed(value) => {
                         show.episode = value;
                         episode-changed();
+                        show-changed = true;
                     }
                 }
 
@@ -334,7 +356,10 @@ export component ShowWindow inherits Rectangle {
                             dropped-button.checked = false;
                             show.status = Status.watching;
                             status-changed();
+                            show-changed = true;
                         }
+
+                        episode.increment();
                     }
                 }
             }
@@ -359,6 +384,28 @@ export component ShowWindow inherits Rectangle {
 
                 release-date := TextInput {
                     read-only: true;
+                }
+
+                if show.release-time != "": HorizontalBox {
+                    padding: 0px;
+                    spacing: 0px;
+                    horizontal-stretch: 0;
+
+                    for day[i] in week: Rectangle {
+                        background: day > 0 ? Palette.blue : Palette.primary;
+                        border-width: 2px;
+                        border-color: i == day-now ? Palette.red : self.background;
+                        width: 50px;
+
+                        Text {
+                            text: days[i];
+                            color: Palette.text;
+                        }
+                    }
+
+                    Rectangle {
+                        horizontal-stretch: 1;
+                    }
                 }
 
                 about-show := TextInput {

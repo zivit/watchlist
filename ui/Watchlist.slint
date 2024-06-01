@@ -89,51 +89,81 @@ export component Watchlist inherits Rectangle {
             }
         }
 
-        if !root.mode-compact : Flickable {
-            VerticalBox {
-                padding: 0px;
-                spacing: 0px;
+        if !root.mode-compact : HorizontalLayout {
+            property <float> scroll-coef: list.height / list.viewport-height;
 
-                for s in shows : ListElement {
-                    show: s;
-                    title-color: s.new-episodes-available && s.status == Status.watching ?
-                        Palette.light-blue : Palette.text;
+            list := Flickable {
+                VerticalBox {
+                    padding: 0px;
+                    spacing: 0px;
 
-                    Rectangle {
-                        background: #101010;
-                        height: 1px;
-                        y: parent.height - 1px;
-                    }
+                    for s in shows : ListElement {
+                        show: s;
+                        title-color: s.new-episodes-available && s.status == Status.watching ?
+                            Palette.light-blue : Palette.text;
 
-                    TouchArea {
-                        clicked() => {
-                            show-clicked(s);
+                        Rectangle {
+                            background: #101010;
+                            height: 1px;
+                            y: parent.height - 1px;
+                        }
+
+                        TouchArea {
+                            clicked() => {
+                                show-clicked(s);
+                            }
                         }
                     }
                 }
             }
+
+            scrollbar := Rectangle {
+                width: 8px;
+                background: Palette.primary;
+
+                scrollbar-indicator := Rectangle {
+                    height: min(list.height, scroll-coef * list.height);
+                    y: -list.viewport-y * scroll-coef;
+                    background: Palette.border;
+                }
+            }
         }
-        if root.mode-compact : Flickable {
-            VerticalBox {
-                padding: 0px;
-                spacing: 0px;
+        if root.mode-compact : HorizontalLayout {
+            property <float> scroll-coef: list-compact.height / list-compact.viewport-height;
 
-                for s in shows : ListElementCompact {
-                    show: s;
-                    title-color: s.new-episodes-available && s.status == Status.watching ?
-                        Palette.light-blue : Palette.text;
+            list-compact := Flickable {
+                VerticalBox {
+                    padding: 0px;
+                    spacing: 0px;
 
-                    Rectangle {
-                        background: #101010;
-                        height: 1px;
-                        y: parent.height - 1px;
-                    }
+                    for s in shows : ListElementCompact {
+                        show: s;
+                        title-color: s.new-episodes-available && s.status == Status.watching ?
+                            Palette.light-blue : Palette.text;
 
-                    TouchArea {
-                        clicked() => {
-                            show-clicked(s);
+                        Rectangle {
+                            background: #101010;
+                            height: 1px;
+                            y: parent.height - 1px;
+                        }
+
+                        TouchArea {
+                            clicked() => {
+                                show-clicked(s);
+                            }
                         }
                     }
+                }
+            }
+
+            scrollbar-compact := Rectangle {
+                width: 8px;
+                background: Palette.primary;
+
+                scrollbar-indicator-compact := Rectangle {
+                    height: min(list-compact.height, scroll-coef * list-compact.height);
+                    y: -list-compact.viewport-y * scroll-coef;
+                    background: Palette.border;
                 }
             }
         }

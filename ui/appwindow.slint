@@ -32,6 +32,7 @@ export component AppWindow inherits Window {
     callback favorite-changed(Show);
     callback open-link(string);
     callback search(string);
+    callback get-weekday() -> int;
 
     out property <ImageDetails> show-image;
     in property shows <=> watchlist.shows;
@@ -58,6 +59,7 @@ export component AppWindow inherits Window {
 
         show-clicked(show) => {
             self.visible = false;
+            show-window.day-now = get-weekday();
             show-window.display-show(show);
             show-window.visible = true;
         }
@@ -95,8 +97,10 @@ export component AppWindow inherits Window {
             episode-changed(show-window.show);
         }
 
-        back => {
-            update-watchlist();
+        back(is-changed) => {
+            if (is-changed) {
+                update-watchlist();
+            }
             self.visible = false;
             watchlist.search-mode = false;
             watchlist.visible = true;
