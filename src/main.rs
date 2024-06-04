@@ -524,6 +524,14 @@ fn main() -> Result<()> {
         Local::now().weekday() as i32
     });
 
+    ui.on_get_local_image_path(|| {
+        if let Some(image_path) = rfd::FileDialog::new().add_filter("Image files", &["jpg", "jpeg", "png"]).pick_file() {
+            slint::SharedString::from(image_path.to_str().unwrap_or_default())
+        } else {
+            slint::SharedString::default()
+        }
+    });
+
     ui.run()?;
     Ok(())
 }

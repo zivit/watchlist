@@ -19,20 +19,21 @@ export component AppWindow inherits Window {
     title: "Watchlist";
 
     callback add-show(Show);
-    callback remove-show(Show);
-    callback cancel-show();
-    callback load-image(string) -> ImageDetails;
     callback can-import-show-by-link(string) -> bool;
-    callback import-clicked(string) -> Show;
-    callback update-watchlist();
-    callback score-changed(Show);
-    callback status-changed(Show);
-    callback season-changed(Show);
+    callback cancel-show();
     callback episode-changed(Show);
     callback favorite-changed(Show);
-    callback open-link(string);
-    callback search(string);
+    callback get-local-image-path() -> string;
     callback get-weekday() -> int;
+    callback import-clicked(string) -> Show;
+    callback load-image(string) -> ImageDetails;
+    callback open-link(string);
+    callback remove-show(Show);
+    callback score-changed(Show);
+    callback search(string);
+    callback season-changed(Show);
+    callback status-changed(Show);
+    callback update-watchlist();
 
     out property <ImageDetails> show-image;
     in property shows <=> watchlist.shows;
@@ -165,6 +166,10 @@ export component AppWindow inherits Window {
         load-image(name) => {
             add-window.show-image = load-image-impl(name);
             return root.show-image.source;
+        }
+
+        get-local-path() => {
+            return get-local-image-path();
         }
     }
 }
