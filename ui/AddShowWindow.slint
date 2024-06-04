@@ -7,6 +7,7 @@ import { LineEdit } from "LineEdit.slint";
 import { TextEdit } from "TextEdit.slint";
 import { SpinBox } from "SpinBox.slint";
 import { RadioButtonsGroup } from "RadioButtonsGroup.slint";
+import { DateTimeWidget } from "DateTimeWidget.slint";
 
 export component AddShowWindow inherits Rectangle {
     callback add-show(Show);
@@ -15,6 +16,8 @@ export component AddShowWindow inherits Rectangle {
     callback link-changed(string) -> bool;
     callback import-clicked(string) -> Show;
     callback load-image(string) -> image;
+    callback get-weekday(string) -> int;
+    callback parse-datetime(string) -> [int];
     property <Show> show;
     property <Status> status: Status.watch-later;
     in-out property show-image <=> show-image-container.source;
@@ -38,10 +41,10 @@ export component AddShowWindow inherits Rectangle {
         show-type.index = 0;
         season.text = "";
         episodes-count.text = "";
-        release-time.text = "";
         scheldule = [0, 0, 0, 0, 0, 0, 0];
     }
 
+    property <[int]> parsed-datetime;
     public function set-show(s: Show) {
         show = s;
         status = s.status;
@@ -68,7 +71,6 @@ export component AddShowWindow inherits Rectangle {
 
         season.text = s.season;
         episodes-count.text = s.episodes-count;
-        release-time.text = s.release-time;
 
         scheldule[0] = s.schedule-monday;
         scheldule[1] = s.schedule-tuesday;
@@ -77,6 +79,10 @@ export component AddShowWindow inherits Rectangle {
         scheldule[4] = s.schedule-friday;
         scheldule[5] = s.schedule-saturday;
         scheldule[6] = s.schedule-sunday;
+
+        parsed-datetime = parse-datetime(s.release-time);
+        release-time.set-datetime(parsed-datetime[0], parsed-datetime[1], parsed-datetime[2],
+            parsed-datetime[3], parsed-datetime[4]);
 
         watch-later-button.checked = false;
         watching-button.checked = false;
@@ -429,13 +435,31 @@ export component AddShowWindow inherits Rectangle {
                         height: 14px;
                     }
 
-                    release-time := LineEdit {
-                        placeholder-text: "Release time (format YYYY-MM-DD hh:mm, for example \"2024-05-30 11:00\")";
-                        vertical-stretch: 0;
-                        height: 30px;
+                    HorizontalLayout {
+                        alignment: start;
 
-                        edited => {
-                            release-date.text = release-time.text;
+                        Text {
+                            text: "Release time:";
+                            vertical-stretch: 0;
+                        }
+
+                        release-time := DateTimeWidget {
+                            height: 75px;
+                            vertical-stretch: 0;
+                            property <int> weekday;
+
+                            changed => {
+                                release-date.text = release-time.text;
+                                weekday = get-weekday(release-time.text);
+                                scheldule[0] = 0;
+                                scheldule[1] = 0;
+                                scheldule[2] = 0;
+                                scheldule[3] = 0;
+                                scheldule[4] = 0;
+                                scheldule[5] = 0;
+                                scheldule[6] = 0;
+                                scheldule[weekday] = 1;
+                            }
                         }
                     }
 

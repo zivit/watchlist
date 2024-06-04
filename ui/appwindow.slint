@@ -24,10 +24,12 @@ export component AppWindow inherits Window {
     callback episode-changed(Show);
     callback favorite-changed(Show);
     callback get-local-image-path() -> string;
-    callback get-weekday() -> int;
+    callback get-weekday-now() -> int;
+    callback get-weekday(string) -> int;
     callback import-clicked(string) -> Show;
     callback load-image(string) -> ImageDetails;
     callback open-link(string);
+    callback parse-datetime(string) -> [int];
     callback remove-show(Show);
     callback score-changed(Show);
     callback search(string);
@@ -60,7 +62,7 @@ export component AppWindow inherits Window {
 
         show-clicked(show) => {
             self.visible = false;
-            show-window.day-now = get-weekday();
+            show-window.day-now = get-weekday-now();
             show-window.display-show(show);
             show-window.visible = true;
         }
@@ -156,6 +158,14 @@ export component AppWindow inherits Window {
 
         load-image(name) => {
             return load-image-impl(name);
+        }
+
+        get-weekday(datetime) => {
+            return get-weekday(datetime);
+        }
+
+        parse-datetime(datetime) => {
+            return parse-datetime(datetime);
         }
     }
 

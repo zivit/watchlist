@@ -34,6 +34,7 @@ export component SpinBox {
     in property <string> hint;
     in property <color> text-color: white;
     in property <color> background-color: Palette.primary;
+    in property <bool> cycle;
 
     callback changed(int);
 
@@ -42,6 +43,9 @@ export component SpinBox {
             if (value - 1 >= min) {
                 value = value - 1;
                 changed(value);
+            }
+            else if (cycle) {
+                value = max;
             }
         }
         else {
@@ -61,6 +65,9 @@ export component SpinBox {
                 value = value + 1;
                 changed(value);
             }
+            else if (cycle) {
+                value = min;
+            }
         }
         else {
             if (value + 1 > list.length - 1) {
@@ -74,8 +81,6 @@ export component SpinBox {
     }
 
     if orientation == Orientation.horizontal: HorizontalLayout {
-        vertical-stretch: 0;
-
         ToolButton {
             icon: Images.left;
             background-color: root.background-color;

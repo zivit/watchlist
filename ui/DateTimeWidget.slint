@@ -1,0 +1,154 @@
+import { SpinBox } from "SpinBox.slint";
+
+export component DateTimeWidget {
+    out property <string> text;
+    callback changed();
+    min-height: 75px;
+    min-width: 170px;
+
+    public function set-datetime(Y: int, M: int, D: int, h: int, m: int) {
+        year.value = Y;
+        month.value = M;
+        day.value = D;
+        hour.value = h;
+        minute.value = m;
+        update-date-time();
+    }
+
+    function update-date-time() {
+        text =
+            year.value + "-" +
+            add-zero-if-less-than-ten(month.value) + "-" +
+            add-zero-if-less-than-ten(day.value) + " " +
+            add-zero-if-less-than-ten(hour.value) + ":" +
+            add-zero-if-less-than-ten(minute.value);
+        changed();
+    }
+
+    function add-zero-if-less-than-ten(value: int) -> string {
+        if (value < 10) {
+            return "0" + value;
+        }
+        else {
+            return "" + value;
+        }
+    }
+
+    Rectangle {
+        width: 170px;
+
+        year := SpinBox {
+            width: 30px;
+            height: root.height;
+            min: 1970;
+            max: 2100;
+            value: 2024;
+            cycle: true;
+            orientation: vertical;
+            vertical-stretch: 1;
+
+            changed => {
+                update-date-time();
+            }
+        }
+
+        sep1 := Text {
+            x: year.x + year.width;
+            width: 5px;
+            height: root.height;
+            text: "-";
+            vertical-alignment: center;
+        }
+
+        month := SpinBox {
+            x: sep1.x + sep1.width;
+            width: 30px;
+            height: root.height;
+            min: 1;
+            max: 12;
+            value: 6;
+            cycle: true;
+            orientation: vertical;
+            max-width: 30px;
+            vertical-stretch: 1;
+
+            changed => {
+                update-date-time();
+            }
+        }
+
+        sep2 := Text {
+            x: month.x + month.width;
+            width: 5px;
+            height: root.height;
+            text: "-";
+            vertical-alignment: center;
+        }
+
+        day := SpinBox {
+            x: sep2.x + sep2.width;
+            width: 30px;
+            height: root.height;
+            min: 1;
+            max: 31;
+            value: 15;
+            cycle: true;
+            orientation: vertical;
+            max-width: 30px;
+            vertical-stretch: 1;
+
+            changed => {
+                update-date-time();
+            }
+        }
+
+        sep3 := Text {
+            x: day.x + day.width;
+            width: 5px;
+            height: root.height;
+            text: " ";
+        }
+
+        hour := SpinBox {
+            x: sep3.x + sep3.width;
+            width: 30px;
+            height: root.height;
+            min: 0;
+            max: 23;
+            value: 13;
+            cycle: true;
+            orientation: vertical;
+            max-width: 30px;
+            vertical-stretch: 1;
+
+            changed => {
+                update-date-time();
+            }
+        }
+
+        sep4 := Text {
+            x: hour.x + hour.width;
+            width: 5px;
+            height: root.height;
+            text: ":";
+            vertical-alignment: center;
+        }
+
+        minute := SpinBox {
+            x: sep4.x + sep4.width;
+            width: 30px;
+            height: root.height;
+            min: 0;
+            max: 59;
+            value: 00;
+            cycle: true;
+            orientation: vertical;
+            max-width: 30px;
+            vertical-stretch: 1;
+
+            changed => {
+                update-date-time();
+            }
+        }
+    }
+}

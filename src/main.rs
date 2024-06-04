@@ -5,7 +5,7 @@ use downloader::{Download, Downloader};
 use image::EncodableLayout;
 use slint::{ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use sqlite::State;
-use std::{fs::File, io::Read, rc::Rc};
+use std::{fs::File, io::Read, rc::Rc, vec};
 
 slint::include_modules!();
 
@@ -56,12 +56,11 @@ fn create_database() -> Result<()> {
 fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) -> Result<bool> {
     let parsed_date = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")
         .with_context(|| format!("Failed to parse release time: {}", time))?;
-    let local_time = match Local.from_local_datetime(&parsed_date) {
+    let release_time = match Local.from_local_datetime(&parsed_date) {
         chrono::offset::LocalResult::Single(t) => t,
         chrono::offset::LocalResult::Ambiguous(_, _) => bail!("Failed to convert naive time to local time"),
         chrono::offset::LocalResult::None => bail!("Failed to convert naive time to local time"),
     };
-    let release_time: DateTime<Local> = local_time;
     let time_elapsed = Local::now().signed_duration_since(release_time);
     let weeks_count = time_elapsed.num_weeks();
     let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32 + 1;
@@ -520,8 +519,33 @@ fn main() -> Result<()> {
     ui.on_can_import_show_by_link(|link| check_link_is_importable(&link));
     ui.on_import_clicked(|link| import_clicked(&link));
 
-    ui.on_get_weekday(|| {
+    ui.on_get_weekday_now(|| {
         Local::now().weekday() as i32
+    });
+
+    ui.on_get_weekday(|datetime| {
+        let parsed_date = NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
+        let release_time = match Local.from_local_datetime(&parsed_date) {
+            chrono::offset::LocalResult::Single(t) => t,
+            chrono::offset::LocalResult::Ambiguous(_, _) => Default::default(),
+            chrono::offset::LocalResult::None => Default::default(),
+        };
+        release_time.weekday() as i32
+    });
+
+    ui.on_parse_datetime(|datetime| {
+        let parsed_date = NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
+        let release_time = match Local.from_local_datetime(&parsed_date) {
+            chrono::offset::LocalResult::Single(t) => t,
+            chrono::offset::LocalResult::Ambiguous(_, _) => Default::default(),
+            chrono::offset::LocalResult::None => Default::default(),
+        };
+        ModelRc::from(Rc::new(VecModel::from(vec![
+            release_time.year() as i32,
+            release_time.month() as i32,
+            release_time.day() as i32,
+            release_time.hour() as i32,
+            release_time.minute() as i32])))
     });
 
     ui.on_get_local_image_path(|| {
