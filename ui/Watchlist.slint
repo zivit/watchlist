@@ -16,15 +16,56 @@ export component Watchlist inherits Rectangle {
 
     in-out property <bool> search-mode: false;
 
-    VerticalBox {
-        padding: 0px;
-        spacing: 0px;
+    VerticalLayout {
+        search-toolbar := ToolBar {
+            height: search-mode ? 50px : 0px;
+            background: Palette.primary;
+            visible: search-mode;
+
+            HorizontalBox {
+                padding: 0px;
+                spacing: 0px;
+                width: parent.width;
+                height: parent.height;
+                alignment: stretch;
+                property <bool> is-changed;
+
+                search-input := LineEdit {
+                    placeholder-text: "Enter the show name here";
+                    border-width: 0px;
+
+                    accepted => {
+                        is-changed = true;
+                        search(self.text);
+                    }
+                }
+
+                cancel-button := ToolButton {
+                    hint: "Cancel";
+                    hint-direction-left: true;
+                    icon: Images.cancel;
+                    width: 50px;
+                    height: 50px;
+                    background-color: Palette.primary;
+
+                    clicked => {
+                        search-mode = false;
+                        if (is-changed) {
+                            is-changed = false;
+                            search-input.text = "";
+                            search-cancel();
+                        }
+                    }
+                }
+            }
+        }
 
         ToolBar {
-            height: 50px;
+            height: search-mode ? 0px : 50px;
             background: Palette.primary;
+            visible: !search-mode;
 
-            if !search-mode : HorizontalBox {
+            HorizontalBox {
                 padding: 0px;
                 spacing: 0px;
                 width: parent.width;
@@ -53,37 +94,7 @@ export component Watchlist inherits Rectangle {
 
                     clicked => {
                         search-mode = true;
-                    }
-                }
-            }
-
-            if search-mode : HorizontalBox {
-                padding: 0px;
-                spacing: 0px;
-                width: parent.width;
-                height: parent.height;
-                alignment: stretch;
-
-                search-input := LineEdit {
-                    placeholder-text: "Enter the show name here";
-                    border-width: 0px;
-
-                    edited => {
-                        search(self.text);
-                    }
-                }
-
-                cancel-button := ToolButton {
-                    hint: "Cancel";
-                    hint-direction-left: true;
-                    icon: Images.cancel;
-                    width: 50px;
-                    height: 50px;
-                    background-color: Palette.primary;
-
-                    clicked => {
-                        search-mode = false;
-                        search-cancel();
+                        search-input.text-focus();
                     }
                 }
             }
