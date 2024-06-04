@@ -56,12 +56,11 @@ fn create_database() -> Result<()> {
 fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) -> Result<bool> {
     let parsed_date = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")
         .with_context(|| format!("Failed to parse release time: {}", time))?;
-    let local_time;
-    match Local.from_local_datetime(&parsed_date) {
-        chrono::offset::LocalResult::Single(t) => local_time = t,
+    let local_time = match Local.from_local_datetime(&parsed_date) {
+        chrono::offset::LocalResult::Single(t) => t,
         chrono::offset::LocalResult::Ambiguous(_, _) => bail!("Failed to convert naive time to local time"),
         chrono::offset::LocalResult::None => bail!("Failed to convert naive time to local time"),
-    }
+    };
     let release_time: DateTime<Local> = local_time;
     let time_elapsed = Local::now().signed_duration_since(release_time);
     let weeks_count = time_elapsed.num_weeks();
@@ -207,9 +206,9 @@ fn add_show(s: Show) -> Result<()> {
         ShowType::Anime => 3,
     };
 
-    let title = s.title.to_string().replace("\"", "“");
-    let alternative_title = s.alternative_title.to_string().replace("\"", "“");
-    let about = s.about.to_string().replace("\"", "“");
+    let title = s.title.to_string().replace('"', "“");
+    let alternative_title = s.alternative_title.to_string().replace('"', "“");
+    let about = s.about.to_string().replace('"', "“");
 
     let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
 
@@ -240,16 +239,16 @@ fn add_show(s: Show) -> Result<()> {
             ",
             title,
             alternative_title,
-            s.release_date.to_string(),
+            s.release_date,
             about,
-            s.link_to_show.to_string(),
-            s.score.to_string(),
-            s.favorite.to_string(),
+            s.link_to_show,
+            s.score,
+            s.favorite,
             status,
             s.season,
             s.episodes_count,
             s.episode,
-            s.release_time.to_string(),
+            s.release_time,
             s.schedule_monday,
             s.schedule_tuesday,
             s.schedule_wednesday,
@@ -273,16 +272,16 @@ fn add_show(s: Show) -> Result<()> {
                             \"{}\", \"{}\", \"{}\", \"{}\");",
             title,
             alternative_title,
-            s.release_date.to_string(),
+            s.release_date,
             about,
-            s.link_to_show.to_string(),
-            s.score.to_string(),
-            s.favorite.to_string(),
+            s.link_to_show,
+            s.score,
+            s.favorite,
             status,
             s.season,
             s.episodes_count,
             s.episode,
-            s.release_time.to_string(),
+            s.release_time,
             s.schedule_monday,
             s.schedule_tuesday,
             s.schedule_wednesday,
@@ -298,12 +297,12 @@ fn add_show(s: Show) -> Result<()> {
     if !s.link_to_picture.is_empty() {
         let query = format!(
             "UPDATE list SET image = ? WHERE title = \"{}\";",
-            s.title.to_string()
+            s.title
         );
 
         let mut content = Vec::new();
         let st = if !s.link_to_picture.is_empty() {
-            let mut file = File::open(&s.link_to_picture.to_string()).expect("Failed to open file");
+            let mut file = File::open(s.link_to_picture.to_string()).expect("Failed to open file");
             file.read_to_end(&mut content)
                 .expect("Failed to read_to_end");
             unsafe { std::str::from_utf8_unchecked(&content) }
@@ -334,7 +333,7 @@ fn download_image_by_http(url: &std::path::Path) -> Result<std::path::PathBuf> {
 
     for r in result {
         match r {
-            Err(e) => print!("Error: {}", e.to_string()),
+            Err(e) => print!("Error: {}", e),
             Ok(s) => print!("Success: {}", &s),
         }
     }
@@ -346,9 +345,9 @@ fn download_image_by_http(url: &std::path::Path) -> Result<std::path::PathBuf> {
 
 fn check_link_is_allowed_site(link: &str) -> Sites {
     if link.starts_with(SITE_IMDB) {
-        return Sites::Imdb;
+        Sites::Imdb
     } else {
-        return Sites::Unknown;
+        Sites::Unknown
     }
 }
 
@@ -358,11 +357,7 @@ fn check_link_is_importable(link: &str) -> bool {
     }
 
     let site = check_link_is_allowed_site(link);
-    if site == Sites::Unknown {
-        return false;
-    } else {
-        return true;
-    }
+    site != Sites::Unknown
 }
 
 fn import_clicked(link: &str) -> Show {
@@ -419,7 +414,7 @@ fn favorite_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET favorite = \"{}\" WHERE id = \"{}\";",
-        show.favorite.to_string(),
+        show.favorite,
         show.id,
     );
     connection
@@ -432,7 +427,7 @@ fn season_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET season = \"{}\" WHERE id = \"{}\";",
-        show.season.to_string(),
+        show.season,
         show.id,
     );
     connection
@@ -445,7 +440,7 @@ fn episode_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET episode = \"{}\" WHERE id = \"{}\";",
-        show.episode.to_string(),
+        show.episode,
         show.id,
     );
     connection
@@ -467,7 +462,7 @@ fn main() -> Result<()> {
         let name_string = name.to_string();
         let path_to_image = std::path::Path::new(&name_string);
         if name.starts_with("http") {
-            let p = download_image_by_http(&path_to_image)
+            let p = download_image_by_http(path_to_image)
                 .map_err(|e| eprintln!("Error: {}", e))
                 .unwrap_or_default();
             ImageDetails {

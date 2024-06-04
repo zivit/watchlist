@@ -1,5 +1,5 @@
 import { ToolBar, ToolButton } from "ToolBar.slint";
-import { Show } from "Show.slint";
+import { Show } from "Structs.slint";
 import { AddShowWindow } from "AddShowWindow.slint";
 import { ShowWindow } from "ShowWindow.slint";
 import { ChangePictureDialog } from "ChangePictureDialog.slint";
@@ -98,12 +98,12 @@ export component AppWindow inherits Window {
         }
 
         back(is-changed) => {
-            if (is-changed) {
-                update-watchlist();
-            }
             self.visible = false;
             watchlist.search-mode = false;
             watchlist.visible = true;
+            if (is-changed) {
+                update-watchlist();
+            }
         }
 
         edit(show) => {
@@ -114,9 +114,9 @@ export component AppWindow inherits Window {
 
         remove(show) => {
             remove-show(show);
-            update-watchlist();
             self.visible = false;
             watchlist.visible = true;
+            update-watchlist();
         }
 
         open-link(link) => {
@@ -130,9 +130,9 @@ export component AppWindow inherits Window {
 
         add-show(show) => {
             root.add-show(show);
-            update-watchlist();
             self.visible = false;
             watchlist.visible = true;
+            update-watchlist();
         }
 
         cancel-show => {

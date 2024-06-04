@@ -78,10 +78,10 @@ fn scrab(
 
 fn get_show(parsed: Result<Show>) -> Show {
     match parsed {
-        Ok(p) => return p,
+        Ok(p) => p,
         Err(e) => {
             eprintln!("Error: {}", e);
-            return Show::default();
+            Show::default()
         }
     }
 }
