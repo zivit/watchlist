@@ -2,7 +2,7 @@ import { Button, VerticalBox, HorizontalBox, LineEdit, StandardButton } from "st
 import { Images, Palette } from "Global.slint";
 
 export component ChangePictureDialog inherits Dialog {
-    callback load-image(string) -> image;
+    callback load-image(string);
     callback get-local-path() -> string;
     out property <image> image: Images.show-picture;
 
@@ -45,7 +45,7 @@ export component ChangePictureDialog inherits Dialog {
                         placeholder-text: "Path to the picture";
 
                         accepted => {
-                            root.image = root.load-image(address.text);
+                            root.load-image(address.text);
                             root.visible = false;
                             address.text = "";
                         }
@@ -66,7 +66,7 @@ export component ChangePictureDialog inherits Dialog {
                         kind: ok;
 
                         clicked => {
-                            root.image = root.load-image(address.text);
+                            root.load-image(address.text);
                             root.visible = false;
                             address.text = "";
                         }

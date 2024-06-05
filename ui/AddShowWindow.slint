@@ -21,7 +21,7 @@ export component AddShowWindow inherits Rectangle {
     property <Show> show;
     property <Status> status: Status.watch-later;
     in-out property show-image <=> show-image-container.source;
-    in property <string> link-to-picture;
+    in-out property <string> link-to-picture;
     property <[int]> scheldule: [0, 0, 0, 0, 0, 0, 0];
     property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
@@ -31,6 +31,7 @@ export component AddShowWindow inherits Rectangle {
         release-date.text = "";
         about-show.text = "";
         link-to-view.text = "";
+        link-to-picture = "";
         root.show-image = Images.show-picture;
         score-widget.score = 0;
         watch-later-button.checked = true;
@@ -54,6 +55,7 @@ export component AddShowWindow inherits Rectangle {
         release-date.text = s.release-date;
         about-show.text = s.about;
         link-to-view.text = s.link-to-show;
+        link-to-picture = s.link-to-picture;
         score-widget.score = s.score;
 
         if (s.show-type == ShowType.serial) {
