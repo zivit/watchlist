@@ -23,7 +23,7 @@ export component AddShowWindow inherits Rectangle {
     in-out property show-image <=> show-image-container.source;
     in-out property <string> link-to-picture;
     property <[int]> scheldule: [0, 0, 0, 0, 0, 0, 0];
-    property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
+    property <[string]> days: [@tr("Mon"), @tr("Tues"), @tr("Wed"), @tr("Thurs"), @tr("Fri"), @tr("Sat"), @tr("Sun")];
 
     public function reset() {
         title.text = "";
@@ -74,6 +74,16 @@ export component AddShowWindow inherits Rectangle {
         season.text = s.season;
         episodes-count.text = s.episodes-count;
 
+        parsed-datetime = parse-datetime(s.release-time);
+        if (parsed-datetime[0] == 1970) {
+            release-time.set-datetime(2024, parsed-datetime[1], parsed-datetime[2],
+                parsed-datetime[3], parsed-datetime[4]);
+        }
+        else {
+            release-time.set-datetime(parsed-datetime[0], parsed-datetime[1], parsed-datetime[2],
+                parsed-datetime[3], parsed-datetime[4]);
+        }
+
         scheldule[0] = s.schedule-monday;
         scheldule[1] = s.schedule-tuesday;
         scheldule[2] = s.schedule-wednesday;
@@ -81,10 +91,6 @@ export component AddShowWindow inherits Rectangle {
         scheldule[4] = s.schedule-friday;
         scheldule[5] = s.schedule-saturday;
         scheldule[6] = s.schedule-sunday;
-
-        parsed-datetime = parse-datetime(s.release-time);
-        release-time.set-datetime(parsed-datetime[0], parsed-datetime[1], parsed-datetime[2],
-            parsed-datetime[3], parsed-datetime[4]);
 
         watch-later-button.checked = false;
         watching-button.checked = false;
@@ -127,7 +133,7 @@ export component AddShowWindow inherits Rectangle {
             background: Palette.primary;
 
             add-button := ToolButton {
-                hint: "Add";
+                hint: @tr("Add");
                 icon: @image-url("assets/check.png");
                 width: 50px;
                 height: 50px;
@@ -181,7 +187,7 @@ export component AddShowWindow inherits Rectangle {
             }
 
             cancel-button := ToolButton {
-                hint: "Cancel";
+                hint: @tr("Cancel");
                 hint-direction-left: true;
                 icon: @image-url("assets/close.png");
                 width: 50px;
@@ -233,7 +239,7 @@ export component AddShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/clock.png");
-                        hint: "Plan to watch";
+                        hint: @tr("Plan to watch");
                         z: 100;
 
                         clicked => {
@@ -256,7 +262,7 @@ export component AddShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/view.png");
-                        hint: "Watching";
+                        hint: @tr("Watching");
                         z: 99;
 
                         clicked => {
@@ -279,7 +285,7 @@ export component AddShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/check-mark.png");
-                        hint: "Completed";
+                        hint: @tr("Completed");
                         z: 98;
 
                         clicked => {
@@ -302,7 +308,7 @@ export component AddShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/love.png");
-                        hint: "Favorite";
+                        hint: @tr("Favorite");
                         z: 97;
 
                         clicked => {
@@ -322,7 +328,7 @@ export component AddShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/dislike.png");
-                        hint: "Dropped";
+                        hint: @tr("Dropped");
                         z: 96;
 
                         clicked => {
@@ -348,7 +354,7 @@ export component AddShowWindow inherits Rectangle {
                 alignment: stretch;
 
                 link-to-view := LineEdit {
-                    placeholder-text: "Link for watching (https://)";
+                    placeholder-text: @tr("Link for watching (https://)");
 
                     edited => {
                         import-button.visible = root.link-changed(self.text);
@@ -392,21 +398,21 @@ export component AddShowWindow inherits Rectangle {
                 }
 
                 show-type := RadioButtonsGroup {
-                    list: ["Serial", "Film", "Cartoon", "Anime"];
+                    list: [@tr("Serial"), @tr("Film"), @tr("Cartoon"), @tr("Anime")];
                     orientation: horizontal;
                     height: 20px;
                 }
 
                 title := LineEdit {
-                    placeholder-text: "Title";
+                    placeholder-text: @tr("Title");
                 }
 
                 alternative-title := LineEdit {
-                    placeholder-text: "Alternative title";
+                    placeholder-text: @tr("Alternative title");
                 }
 
                 release-date := LineEdit {
-                    placeholder-text: "Release date";
+                    placeholder-text: @tr("Release date");
                 }
 
                 HorizontalBox {
@@ -414,18 +420,18 @@ export component AddShowWindow inherits Rectangle {
                     spacing: 5px;
 
                     season := LineEdit {
-                        placeholder-text: "Season";
+                        placeholder-text: @tr("Season");
                         input-type: number;
                     }
 
                     episodes-count := LineEdit {
-                        placeholder-text: "Episodes count";
+                        placeholder-text: @tr("Episodes count");
                         input-type: number;
                     }
                 }
 
                 about-show := TextEdit {
-                    placeholder-text: "About";
+                    placeholder-text: @tr("About");
                 }
 
                 VerticalBox {
@@ -433,7 +439,7 @@ export component AddShowWindow inherits Rectangle {
                     spacing: 5px;
 
                     Text {
-                        text: "Schedule";
+                        text: @tr("Schedule");
                         height: 14px;
                     }
 
@@ -441,7 +447,7 @@ export component AddShowWindow inherits Rectangle {
                         alignment: start;
 
                         Text {
-                            text: "Release time:";
+                            text: @tr("Release time:");
                             vertical-stretch: 0;
                         }
 

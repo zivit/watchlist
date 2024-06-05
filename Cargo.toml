@@ -15,7 +15,7 @@ image = "0.25"
 open = "5.1"
 regex = "1.10"
 rfd = "0.14.1"
-slint = "1.4"
+slint = { version = "1.4", features=["gettext"] }
 sqlite = "0.34"
 webpage = "2.0"
 
