@@ -1,5 +1,5 @@
 import { ToolBar, ToolButton } from "ToolBar.slint";
-import { Show } from "Structs.slint";
+import { Show, Filter, FilterStatus } from "Structs.slint";
 import { AddShowWindow } from "AddShowWindow.slint";
 import { ShowWindow } from "ShowWindow.slint";
 import { ChangePictureDialog } from "ChangePictureDialog.slint";
@@ -23,6 +23,8 @@ export component AppWindow inherits Window {
     callback cancel-show();
     callback episode-changed(Show);
     callback favorite-changed(Show);
+    callback show-filter([Show], Filter) -> [Show];
+    callback display-dropped();
     callback get-local-image-path() -> string;
     callback get-weekday-now() -> int;
     callback get-weekday(string) -> int;
@@ -32,13 +34,19 @@ export component AppWindow inherits Window {
     callback parse-datetime(string) -> [int];
     callback remove-show(Show);
     callback score-changed(Show);
-    callback search(string);
+    callback search([Show], string) -> [Show];
     callback season-changed(Show);
+    callback set-shows([Show]);
     callback status-changed(Show);
-    callback update-watchlist();
 
-    out property <ImageDetails> show-image;
-    in property shows <=> watchlist.shows;
+    property <ImageDetails> show-image;
+    property <[Show]> shows;
+    property <Filter> filter;
+
+    set-shows(s) => {
+        shows = s;
+        watchlist.shows = shows;
+    }
 
     function load-image-impl(name: string) -> image {
         show-image = root.load-image(name);
@@ -68,11 +76,42 @@ export component AppWindow inherits Window {
         }
 
         search(text) => {
-            search(text);
+            watchlist.shows = search(shows, text);
         }
 
         search-cancel => {
-            update-watchlist();
+            // update-watchlist();
+            watchlist.shows = shows;
+        }
+
+        display-watching => {
+            filter.status = FilterStatus.watching;
+            watchlist.shows = show-filter(shows, filter);
+        }
+
+        display-planned => {
+            filter.status = FilterStatus.planned;
+            watchlist.shows = show-filter(shows, filter);
+        }
+
+        display-completed => {
+            filter.status = FilterStatus.completed;
+            watchlist.shows = show-filter(shows, filter);
+        }
+
+        display-liked => {
+            filter.status = FilterStatus.liked;
+            watchlist.shows = show-filter(shows, filter);
+        }
+
+        display-dropped => {
+            filter.status = FilterStatus.dropped;
+            watchlist.shows = show-filter(shows, filter);
+        }
+
+        cancel-quick-filter => {
+            filter.status = FilterStatus.all;
+            watchlist.shows = show-filter(shows, filter);
         }
     }
 
@@ -105,7 +144,7 @@ export component AppWindow inherits Window {
             watchlist.search-mode = false;
             watchlist.visible = true;
             if (is-changed) {
-                update-watchlist();
+                watchlist.shows = shows;
             }
         }
 
@@ -119,7 +158,7 @@ export component AppWindow inherits Window {
             remove-show(show);
             self.visible = false;
             watchlist.visible = true;
-            update-watchlist();
+            watchlist.shows = shows;
         }
 
         open-link(link) => {
@@ -135,7 +174,7 @@ export component AppWindow inherits Window {
             root.add-show(show);
             self.visible = false;
             watchlist.visible = true;
-            update-watchlist();
+            watchlist.shows = shows;
         }
 
         cancel-show => {

@@ -12,6 +12,36 @@ export enum ShowType {
     anime,
 }
 
+export enum FilterShowType {
+    all,
+    serial,
+    film,
+    cartoon,
+    anime,
+}
+
+export enum FilterStatus {
+    all,
+    watching,
+    planned,
+    completed,
+    liked,
+    dropped,
+}
+
+export enum FilterOngoing {
+    all,
+    ongoing,
+    completed,
+}
+
+export struct Filter {
+    status: FilterStatus,
+    show-type: FilterShowType,
+    ongoing: FilterOngoing,
+    year: int,
+}
+
 export struct Show {
     id: int,
     title: string,

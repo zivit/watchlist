@@ -40,7 +40,7 @@ export component Watchlist inherits Rectangle {
                     placeholder-text: "Enter the show name here";
                     border-width: 0px;
 
-                    accepted => {
+                    edited => {
                         is-changed = true;
                         search(self.text);
                     }

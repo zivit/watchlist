@@ -3,7 +3,7 @@ use chrono::prelude::*;
 use anyhow::{bail, Context, Result};
 use downloader::{Download, Downloader};
 use image::EncodableLayout;
-use slint::{ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
+use slint::{Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use sqlite::State;
 use std::{fs::File, io::Read, rc::Rc, vec};
 
@@ -75,7 +75,7 @@ fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) ->
     Ok(episodes_elapsed + episodes_elapsed_second_part > episode)
 }
 
-fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
+fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let mut statement = connection.prepare(query)?;
     let mut model = Vec::new();
@@ -162,8 +162,7 @@ fn execute_query(ui: &AppWindow, query: &str) -> Result<()> {
     }
 
     let shows: Rc<VecModel<Show>> = Rc::new(VecModel::from(model));
-    ui.set_shows(ModelRc::from(shows));
-    Ok(())
+    Ok(ModelRc::from(shows))
 }
 
 fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
@@ -177,7 +176,9 @@ fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
                 ELSE 4
             END;
     ";
-    execute_query(ui, query)
+    let shows = execute_query(query)?;
+    ui.invoke_set_shows(shows);
+    Ok(())
 }
 
 fn display_list_of_shows_found(ui: &AppWindow, text: &str) -> Result<()> {
@@ -187,7 +188,9 @@ fn display_list_of_shows_found(ui: &AppWindow, text: &str) -> Result<()> {
             LOWER(title) LIKE \"%{0}%\" OR
             LOWER(alternative_title) LIKE \"%{0}%\";",
         text);
-    execute_query(ui, &query)
+    let shows = execute_query(&query)?;
+    ui.invoke_set_shows(shows);
+    Ok(())
 }
 
 fn add_show(s: Show) -> Result<()> {
@@ -504,16 +507,56 @@ fn main() -> Result<()> {
         let _ = open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
     });
 
-    let ui_weak = ui.as_weak();
-    ui.on_search(move |text| {
-        let ui = ui_weak.unwrap();
-        let _ = display_list_of_shows_found(&ui, &text).map_err(|e| eprintln!("Error: {}", e));
+    ui.on_search(move |shows, text| -> ModelRc<Show> {
+        let filter_model = shows.filter({
+            let text = text.clone();
+            move |s| {
+                if text.is_empty() {
+                    true
+                } else {
+                    s.title.to_lowercase().contains(text.to_lowercase().as_str()) ||
+                    s.alternative_title.to_lowercase().contains(text.to_lowercase().as_str())
+                }
+            }
+        });
+
+        let filtered = filter_model.iter().collect::<Vec<Show>>();
+        let m = Rc::new(VecModel::from(filtered));
+        ModelRc::from(m)
     });
 
-    let ui_weak = ui.as_weak();
-    ui.on_update_watchlist(move || {
-        let ui = ui_weak.unwrap();
-        display_all_watchlist(&ui).unwrap();
+    ui.on_show_filter(move |shows, filter| -> ModelRc<Show> {
+        let filter_model = shows.filter({
+            let filter = filter.clone();
+            move |s| {
+                (match filter.status {
+                    FilterStatus::All => true,
+                    FilterStatus::Watching => s.status == Status::Watching,
+                    FilterStatus::Planned => s.status == Status::WatchLater,
+                    FilterStatus::Completed => s.status == Status::Completed,
+                    FilterStatus::Liked => s.favorite,
+                    FilterStatus::Dropped => s.status == Status::Dropped,
+                } &&
+                match filter.show_type {
+                    FilterShowType::All => true,
+                    FilterShowType::Serial => s.show_type == ShowType::Serial,
+                    FilterShowType::Film => s.show_type == ShowType::Film,
+                    FilterShowType::Cartoon => s.show_type == ShowType::Cartoon,
+                    FilterShowType::Anime => s.show_type == ShowType::Anime,
+                }) // &&
+                // TODO: ongoing and year
+                //
+                // match filter.ongoing {
+                //     FilterOngoing::All => s.
+                //     FilterOngoing::Ongoing =>
+                //     FilterOngoing::Completed =>
+                // }
+            }
+        });
+
+        let filtered = filter_model.iter().collect::<Vec<Show>>();
+        let m = Rc::new(VecModel::from(filtered));
+        ModelRc::from(m)
     });
 
     ui.on_can_import_show_by_link(|link| check_link_is_importable(&link));
