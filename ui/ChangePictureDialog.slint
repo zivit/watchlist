@@ -37,12 +37,12 @@ export component ChangePictureDialog inherits Dialog {
                 alignment: start;
 
                 Text {
-                    text: @tr("Choose a picture for the show by https link or on the local disk");
+                    text: "Choose a picture for the show by https link or on the local disk";
                 }
 
                 HorizontalBox {
                     address := LineEdit {
-                        placeholder-text: @tr("Path to the picture");
+                        placeholder-text: "Path to the picture";
 
                         accepted => {
                             root.load-image(address.text);
@@ -52,7 +52,7 @@ export component ChangePictureDialog inherits Dialog {
                     }
 
                     Button {
-                        text: @tr("Open...");
+                        text: "Open...";
                         clicked => {
                             address.text = get-local-path();
                         }

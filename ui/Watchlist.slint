@@ -31,7 +31,7 @@ export component Watchlist inherits Rectangle {
                 property <bool> is-changed;
 
                 search-input := LineEdit {
-                    placeholder-text: @tr("Enter the show name here");
+                    placeholder-text: "Enter the show name here";
                     border-width: 0px;
 
                     accepted => {
@@ -41,7 +41,7 @@ export component Watchlist inherits Rectangle {
                 }
 
                 cancel-button := ToolButton {
-                    hint: @tr("Cancel");
+                    hint: "Cancel";
                     hint-direction-left: true;
                     icon: Images.cancel;
                     width: 50px;
@@ -73,7 +73,7 @@ export component Watchlist inherits Rectangle {
                 alignment: space-between;
 
                 mode-button := ToolButton {
-                    hint: @tr("Change view mode");
+                    hint: "Change view mode";
                     icon: mode-compact ? Images.list-compact : Images.list;
                     width: 50px;
                     height: 50px;
@@ -85,7 +85,7 @@ export component Watchlist inherits Rectangle {
                 }
 
                 search-button := ToolButton {
-                    hint: @tr("Search");
+                    hint: "Search";
                     hint-direction-left: true;
                     icon: Images.search;
                     width: 50px;

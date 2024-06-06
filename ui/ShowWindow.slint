@@ -19,7 +19,7 @@ export component ShowWindow inherits Rectangle {
 
     property <[int]> week;
     in property <int> day-now;
-    property <[string]> days: [@tr("Mon"), @tr("Tues"), @tr("Wed"), @tr("Thurs"), @tr("Fri"), @tr("Sat"), @tr("Sun")];
+    property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
     out property <Show> show;
     in property <image> show-image: Images.show-picture;
@@ -98,7 +98,7 @@ export component ShowWindow inherits Rectangle {
 
                 HorizontalLayout {
                     edit-button := ToolButton {
-                        hint: @tr("Edit");
+                        hint: "Edit";
                         icon: Images.edit;
                         width: 50px;
                         height: 50px;
@@ -112,7 +112,7 @@ export component ShowWindow inherits Rectangle {
                     }
 
                     remove-button := ToolButton {
-                        hint: @tr("Remove");
+                        hint: "Remove";
                         icon: sure ? Images.remove_sure : Images.remove;
                         width: 50px;
                         height: 50px;
@@ -133,7 +133,7 @@ export component ShowWindow inherits Rectangle {
             }
 
             cancel-button := ToolButton {
-                hint: @tr("Cancel");
+                hint: "Cancel";
                 hint-direction-left: true;
                 icon: Images.cancel;
                 width: 50px;
@@ -192,7 +192,7 @@ export component ShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/clock.png");
-                        hint: @tr("Plan to watch");
+                        hint: "Plan to watch";
                         z: 100;
                         clicked => {
                             if (!self.checked) {
@@ -217,7 +217,7 @@ export component ShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/view.png");
-                        hint: @tr("Watching");
+                        hint: "Watching";
                         z: 99;
                         clicked => {
                             if (!self.checked) {
@@ -241,7 +241,7 @@ export component ShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/check-mark.png");
-                        hint: @tr("Completed");
+                        hint: "Completed";
                         z: 98;
                         clicked => {
                             if (!self.checked) {
@@ -265,7 +265,7 @@ export component ShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/love.png");
-                        hint: @tr("Favorite");
+                        hint: "Favorite";
                         z: 97;
                         clicked => {
                             if (dropped-button.checked) {
@@ -289,7 +289,7 @@ export component ShowWindow inherits Rectangle {
                         width: 36px;
                         height: 32px;
                         icon: @image-url("assets/dislike.png");
-                        hint: @tr("Dropped");
+                        hint: "Dropped";
                         z: 96;
                         clicked => {
                             if (!self.checked) {
@@ -312,7 +312,7 @@ export component ShowWindow inherits Rectangle {
 
                 season := SpinBox {
                     height: 32px;
-                    hint: @tr("Season ");
+                    hint: "Season ";
                     min: 1;
                     value: 1;
                     background-color: Palette.blue;
@@ -328,7 +328,7 @@ export component ShowWindow inherits Rectangle {
 
                 episode := SpinBox {
                     height: 32px;
-                    hint: @tr("Episode ");
+                    hint: "Episode ";
                     min: 1;
                     value: 1;
                     max: show.episodes-count;
@@ -343,7 +343,7 @@ export component ShowWindow inherits Rectangle {
 
                 if show.link-to-show != "": ToolButton {
                     height: 32px;
-                    text: @tr("Watch now");
+                    text: "Watch now";
                     background-color: Palette.green;
 
                     clicked => {
@@ -380,12 +380,6 @@ export component ShowWindow inherits Rectangle {
                 alternative-title := TextInput {
                     read-only: true;
                     wrap: word-wrap;
-                }
-
-                episodes := TextInput {
-                    read-only: true;
-                    wrap: word-wrap;
-                    text: show.episodes-count + @tr(" episodes");
                 }
 
                 release-date := TextInput {

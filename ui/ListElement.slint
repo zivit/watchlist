@@ -58,13 +58,6 @@ export component ListElement inherits Rectangle {
                 text: show.release-date;
             }
 
-            episodes := Text {
-                visible: show.episodes-count > 0;
-                text: show.status == Status.watching ?
-                    show.episode + @tr(" of ") + show.episodes-count + @tr(" episodes"):
-                    show.episodes-count + @tr(" episodes");
-            }
-
             HorizontalBox {
                 padding: 0px;
                 spacing: 5px;

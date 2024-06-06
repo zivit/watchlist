@@ -449,8 +449,6 @@ fn episode_changed(show: Show) -> Result<()> {
 }
 
 fn main() -> Result<()> {
-    slint::init_translations!(std::env::current_dir().unwrap().join("translations"));
-
     create_database()?;
     let ui = AppWindow::new()?;
     display_all_watchlist(&ui)?;
