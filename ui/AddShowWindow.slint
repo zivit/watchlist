@@ -74,6 +74,16 @@ export component AddShowWindow inherits Rectangle {
         season.text = s.season;
         episodes-count.text = s.episodes-count;
 
+        parsed-datetime = parse-datetime(s.release-time);
+        if (parsed-datetime[0] == 1970) {
+            release-time.set-datetime(2024, parsed-datetime[1], parsed-datetime[2],
+                parsed-datetime[3], parsed-datetime[4]);
+        }
+        else {
+            release-time.set-datetime(parsed-datetime[0], parsed-datetime[1], parsed-datetime[2],
+                parsed-datetime[3], parsed-datetime[4]);
+        }
+
         scheldule[0] = s.schedule-monday;
         scheldule[1] = s.schedule-tuesday;
         scheldule[2] = s.schedule-wednesday;
@@ -81,10 +91,6 @@ export component AddShowWindow inherits Rectangle {
         scheldule[4] = s.schedule-friday;
         scheldule[5] = s.schedule-saturday;
         scheldule[6] = s.schedule-sunday;
-
-        parsed-datetime = parse-datetime(s.release-time);
-        release-time.set-datetime(parsed-datetime[0], parsed-datetime[1], parsed-datetime[2],
-            parsed-datetime[3], parsed-datetime[4]);
 
         watch-later-button.checked = false;
         watching-button.checked = false;

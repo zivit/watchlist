@@ -382,6 +382,12 @@ export component ShowWindow inherits Rectangle {
                     wrap: word-wrap;
                 }
 
+                episodes := TextInput {
+                    read-only: true;
+                    wrap: word-wrap;
+                    text: show.episodes-count + @tr(" episodes");
+                }
+
                 release-date := TextInput {
                     read-only: true;
                 }
