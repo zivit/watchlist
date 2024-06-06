@@ -344,6 +344,7 @@ export component Watchlist inherits Rectangle {
             scrollbar-compact := Rectangle {
                 width: 8px;
                 background: Palette.primary;
+                height: root.height;
 
                 scrollbar-indicator-compact := Rectangle {
                     height: min(list-compact.height, scroll-coef * list-compact.height);
