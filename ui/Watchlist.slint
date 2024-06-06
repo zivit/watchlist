@@ -13,6 +13,12 @@ export component Watchlist inherits Rectangle {
     callback show-clicked(Show);
     callback search(string);
     callback search-cancel();
+    callback cancel-quick-filter();
+    callback display-watching();
+    callback display-planned();
+    callback display-completed();
+    callback display-liked();
+    callback display-dropped();
 
     in-out property <bool> search-mode: false;
 
@@ -81,7 +87,7 @@ export component Watchlist inherits Rectangle {
                         width: 50px;
                         height: 50px;
                         background-color: Palette.primary;
-                        z: 10;
+                        z: 30;
 
                         clicked => {
                             mode-compact = !mode-compact;
@@ -94,7 +100,7 @@ export component Watchlist inherits Rectangle {
                         width: 50px;
                         height: 50px;
                         background-color: Palette.primary;
-                        z: 9;
+                        z: 29;
 
                         clicked => {
                             add-clicked();
@@ -103,7 +109,150 @@ export component Watchlist inherits Rectangle {
                 }
 
                 HorizontalLayout {
+                    alignment: center;
+
+                    watching-button := ToolButton {
+                        hint: "Watching";
+                        icon: Images.watching;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        checked-color: Palette.green;
+                        checkable: true;
+                        z: 20;
+
+                        clicked => {
+                            planned-button.checked = false;
+                            completed-button.checked = false;
+                            liked-button.checked = false;
+                            dropped-button.checked = false;
+
+                            if (self.checked) {
+                                cancel-quick-filter();
+                            }
+                            else {
+                                display-watching();
+                            }
+                        }
+                    }
+
+                    planned-button := ToolButton {
+                        hint: "Planned";
+                        icon: Images.watch-later;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        checked-color: Palette.yellow;
+                        checkable: true;
+                        z: 19;
+
+                        clicked => {
+                            watching-button.checked = false;
+                            completed-button.checked = false;
+                            liked-button.checked = false;
+                            dropped-button.checked = false;
+
+                            if (self.checked) {
+                                cancel-quick-filter();
+                            }
+                            else {
+                                display-planned();
+                            }
+                        }
+                    }
+
+                    completed-button := ToolButton {
+                        hint: "Completed";
+                        icon: Images.completed;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        checked-color: Palette.blue;
+                        checkable: true;
+                        z: 18;
+
+                        clicked => {
+                            watching-button.checked = false;
+                            planned-button.checked = false;
+                            liked-button.checked = false;
+                            dropped-button.checked = false;
+
+                            if (self.checked) {
+                                cancel-quick-filter();
+                            }
+                            else {
+                                display-completed();
+                            }
+                        }
+                    }
+
+                    liked-button := ToolButton {
+                        hint: "Liked";
+                        icon: Images.liked;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        checked-color: Palette.purple;
+                        checkable: true;
+                        z: 17;
+
+                        clicked => {
+                            watching-button.checked = false;
+                            planned-button.checked = false;
+                            completed-button.checked = false;
+                            dropped-button.checked = false;
+
+                            if (self.checked) {
+                                cancel-quick-filter();
+                            }
+                            else {
+                                display-liked();
+                            }
+                        }
+                    }
+
+                    dropped-button := ToolButton {
+                        hint: "Dropped";
+                        icon: Images.dropped;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        checked-color: Palette.red;
+                        checkable: true;
+                        z: 16;
+
+                        clicked => {
+                            watching-button.checked = false;
+                            planned-button.checked = false;
+                            completed-button.checked = false;
+                            liked-button.checked = false;
+
+                            if (self.checked) {
+                                cancel-quick-filter();
+                            }
+                            else {
+                                display-dropped();
+                            }
+                        }
+                    }
+                }
+
+                HorizontalLayout {
                     alignment: end;
+
+                    // TODO:
+                    filters-button := ToolButton {
+                        // hint: "Filters";
+                        // hint-direction-left: true;
+                        // icon: Images.search;
+                        width: 50px;
+                        height: 50px;
+                        // background-color: Palette.primary;
+                        z: 2;
+
+                        clicked => {
+                        }
+                    }
 
                     search-button := ToolButton {
                         hint: "Search";
@@ -112,6 +261,7 @@ export component Watchlist inherits Rectangle {
                         width: 50px;
                         height: 50px;
                         background-color: Palette.primary;
+                        z: 1;
 
                         clicked => {
                             search-mode = true;
