@@ -7,7 +7,7 @@ import { ScoreWidget } from "ScoreWidget.slint";
 import { ShowImageFullScreen } from "ShowImageFullScreen.slint";
 
 export component ShowWindow inherits Rectangle {
-    callback back(bool);
+    callback back(bool, Show, int);
     callback edit(Show);
     callback remove(Show);
     callback status-changed();
@@ -17,16 +17,18 @@ export component ShowWindow inherits Rectangle {
     callback episode-changed();
     callback open-link(string);
 
+    in-out property <int> index;
     property <[int]> week;
     in property <int> day-now;
     property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
-    out property <Show> show;
+    in-out property <Show> show;
     in property <image> show-image: Images.show-picture;
     property <bool> show-changed: false;
 
-    public function display-show(show: Show) {
+    public function display-show(show: Show, index: int) {
         root.show = show;
+        root.index = index;
 
         if (show.picture.width > 0) {
             show-image.source = show.picture;
@@ -142,7 +144,7 @@ export component ShowWindow inherits Rectangle {
 
                 clicked => {
                     remove-button.sure = false;
-                    back(show-changed);
+                    back(show-changed, show, index);
                     show-changed = false;
                 }
             }

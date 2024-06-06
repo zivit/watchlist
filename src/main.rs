@@ -58,16 +58,20 @@ fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) ->
         .with_context(|| format!("Failed to parse release time: {}", time))?;
     let release_time = match Local.from_local_datetime(&parsed_date) {
         chrono::offset::LocalResult::Single(t) => t,
-        chrono::offset::LocalResult::Ambiguous(_, _) => bail!("Failed to convert naive time to local time"),
+        chrono::offset::LocalResult::Ambiguous(_, _) => {
+            bail!("Failed to convert naive time to local time")
+        }
         chrono::offset::LocalResult::None => bail!("Failed to convert naive time to local time"),
     };
     let time_elapsed = Local::now().signed_duration_since(release_time);
     let weeks_count = time_elapsed.num_weeks();
     let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32 + 1;
-    let weeks_elapsed = release_time + chrono::Duration::weeks(weeks_count) + chrono::Duration::days(1);
+    let weeks_elapsed =
+        release_time + chrono::Duration::weeks(weeks_count) + chrono::Duration::days(1);
     let day_of_last_elapsed_episode = weeks_elapsed.weekday();
     let time_elapsed = Local::now().signed_duration_since(weeks_elapsed);
-    let episodes_elapsed_second_part = schedule.iter()
+    let episodes_elapsed_second_part = schedule
+        .iter()
         .cycle()
         .take(time_elapsed.num_days() as usize)
         .skip(day_of_last_elapsed_episode as usize)
@@ -126,11 +130,21 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
         let schedule_saturday = statement.read::<i64, _>("schedule_saturday")? as i32;
         let schedule_sunday = statement.read::<i64, _>("schedule_sunday")? as i32;
         let release_time = statement.read::<String, _>("release_time")?;
-        let new_episodes_available = check_new_episodes_available(&release_time, episode,
-            [schedule_monday, schedule_tuesday, schedule_wednesday, schedule_thursday,
-            schedule_friday, schedule_saturday, schedule_sunday])
-            .unwrap_or_default();
-            // .map_or_else(|e| { eprintln!("Error: {}", e); false }, |v| v);
+        let new_episodes_available = check_new_episodes_available(
+            &release_time,
+            episode,
+            [
+                schedule_monday,
+                schedule_tuesday,
+                schedule_wednesday,
+                schedule_thursday,
+                schedule_friday,
+                schedule_saturday,
+                schedule_sunday,
+            ],
+        )
+        .unwrap_or_default();
+        // .map_or_else(|e| { eprintln!("Error: {}", e); false }, |v| v);
 
         let show = Show {
             id: statement.read::<i64, _>("id")? as i32,
@@ -165,7 +179,7 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     Ok(ModelRc::from(shows))
 }
 
-fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
+fn load_watchlist(ui: &AppWindow) -> Result<()> {
     let query = "SELECT * FROM list
         ORDER BY
             CASE status
@@ -177,18 +191,6 @@ fn display_all_watchlist(ui: &AppWindow) -> Result<()> {
             END;
     ";
     let shows = execute_query(query)?;
-    ui.invoke_set_shows(shows);
-    Ok(())
-}
-
-fn display_list_of_shows_found(ui: &AppWindow, text: &str) -> Result<()> {
-    let query = format!(
-        "SELECT * FROM list
-            WHERE
-            LOWER(title) LIKE \"%{0}%\" OR
-            LOWER(alternative_title) LIKE \"%{0}%\";",
-        text);
-    let shows = execute_query(&query)?;
     ui.invoke_set_shows(shows);
     Ok(())
 }
@@ -297,10 +299,7 @@ fn add_show(s: Show) -> Result<()> {
     }
 
     if !s.link_to_picture.is_empty() {
-        let query = format!(
-            "UPDATE list SET image = ? WHERE title = \"{}\";",
-            s.title
-        );
+        let query = format!("UPDATE list SET image = ? WHERE title = \"{}\";", s.title);
 
         let mut content = Vec::new();
         let st = if !s.link_to_picture.is_empty() {
@@ -383,8 +382,7 @@ fn score_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET score = \"{}\" WHERE id = \"{}\";",
-        show.score,
-        show.id,
+        show.score, show.id,
     );
     connection
         .execute(query)
@@ -403,8 +401,7 @@ fn status_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET status = \"{}\" WHERE id = \"{}\";",
-        status,
-        show.id,
+        status, show.id,
     );
     connection
         .execute(query)
@@ -416,8 +413,7 @@ fn favorite_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET favorite = \"{}\" WHERE id = \"{}\";",
-        show.favorite,
-        show.id,
+        show.favorite, show.id,
     );
     connection
         .execute(query)
@@ -429,8 +425,7 @@ fn season_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET season = \"{}\" WHERE id = \"{}\";",
-        show.season,
-        show.id,
+        show.season, show.id,
     );
     connection
         .execute(query)
@@ -442,8 +437,7 @@ fn episode_changed(show: Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET episode = \"{}\" WHERE id = \"{}\";",
-        show.episode,
-        show.id,
+        show.episode, show.id,
     );
     connection
         .execute(query)
@@ -454,7 +448,7 @@ fn episode_changed(show: Show) -> Result<()> {
 fn main() -> Result<()> {
     create_database()?;
     let ui = AppWindow::new()?;
-    display_all_watchlist(&ui)?;
+    load_watchlist(&ui)?;
 
     ui.on_add_show(|show| {
         let _ = add_show(show).map_err(|e| eprintln!("Error: {}", e));
@@ -503,8 +497,26 @@ fn main() -> Result<()> {
         let _ = episode_changed(show).map_err(|e| eprintln!("Error: {}", e));
     });
 
+    ui.on_check_new_episode_available(|show| -> bool {
+        check_new_episodes_available(
+            show.release_time.as_str(),
+            show.episode,
+            [
+                show.schedule_monday,
+                show.schedule_tuesday,
+                show.schedule_wednesday,
+                show.schedule_thursday,
+                show.schedule_friday,
+                show.schedule_saturday,
+                show.schedule_sunday,
+            ],
+        )
+        .unwrap_or_default()
+    });
+
     ui.on_open_link(|link| {
-        let _ = open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
+        let _ =
+            open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
     });
 
     ui.on_search(move |shows, text| -> ModelRc<Show> {
@@ -514,8 +526,12 @@ fn main() -> Result<()> {
                 if text.is_empty() {
                     true
                 } else {
-                    s.title.to_lowercase().contains(text.to_lowercase().as_str()) ||
-                    s.alternative_title.to_lowercase().contains(text.to_lowercase().as_str())
+                    s.title
+                        .to_lowercase()
+                        .contains(text.to_lowercase().as_str())
+                        || s.alternative_title
+                            .to_lowercase()
+                            .contains(text.to_lowercase().as_str())
                 }
             }
         });
@@ -536,21 +552,20 @@ fn main() -> Result<()> {
                     FilterStatus::Completed => s.status == Status::Completed,
                     FilterStatus::Liked => s.favorite,
                     FilterStatus::Dropped => s.status == Status::Dropped,
-                } &&
-                match filter.show_type {
+                } && match filter.show_type {
                     FilterShowType::All => true,
                     FilterShowType::Serial => s.show_type == ShowType::Serial,
                     FilterShowType::Film => s.show_type == ShowType::Film,
                     FilterShowType::Cartoon => s.show_type == ShowType::Cartoon,
                     FilterShowType::Anime => s.show_type == ShowType::Anime,
                 }) // &&
-                // TODO: ongoing and year
-                //
-                // match filter.ongoing {
-                //     FilterOngoing::All => s.
-                //     FilterOngoing::Ongoing =>
-                //     FilterOngoing::Completed =>
-                // }
+                   // TODO: ongoing and year
+                   //
+                   // match filter.ongoing {
+                   //     FilterOngoing::All => s.
+                   //     FilterOngoing::Ongoing =>
+                   //     FilterOngoing::Completed =>
+                   // }
             }
         });
 
@@ -562,12 +577,11 @@ fn main() -> Result<()> {
     ui.on_can_import_show_by_link(|link| check_link_is_importable(&link));
     ui.on_import_clicked(|link| import_clicked(&link));
 
-    ui.on_get_weekday_now(|| {
-        Local::now().weekday() as i32
-    });
+    ui.on_get_weekday_now(|| Local::now().weekday() as i32);
 
     ui.on_get_weekday(|datetime| {
-        let parsed_date = NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
+        let parsed_date =
+            NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
         let release_time = match Local.from_local_datetime(&parsed_date) {
             chrono::offset::LocalResult::Single(t) => t,
             chrono::offset::LocalResult::Ambiguous(_, _) => Default::default(),
@@ -577,7 +591,8 @@ fn main() -> Result<()> {
     });
 
     ui.on_parse_datetime(|datetime| {
-        let parsed_date = NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
+        let parsed_date =
+            NaiveDateTime::parse_from_str(datetime.as_str(), "%Y-%m-%d %H:%M").unwrap_or_default();
         let release_time = match Local.from_local_datetime(&parsed_date) {
             chrono::offset::LocalResult::Single(t) => t,
             chrono::offset::LocalResult::Ambiguous(_, _) => Default::default(),
@@ -588,11 +603,15 @@ fn main() -> Result<()> {
             release_time.month() as i32,
             release_time.day() as i32,
             release_time.hour() as i32,
-            release_time.minute() as i32])))
+            release_time.minute() as i32,
+        ])))
     });
 
     ui.on_get_local_image_path(|| {
-        if let Some(image_path) = rfd::FileDialog::new().add_filter("Image files", &["jpg", "jpeg", "png"]).pick_file() {
+        if let Some(image_path) = rfd::FileDialog::new()
+            .add_filter("Image files", &["jpg", "jpeg", "png"])
+            .pick_file()
+        {
             slint::SharedString::from(image_path.to_str().unwrap_or_default())
         } else {
             slint::SharedString::default()

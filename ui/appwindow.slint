@@ -21,6 +21,7 @@ export component AppWindow inherits Window {
     callback add-show(Show);
     callback can-import-show-by-link(string) -> bool;
     callback cancel-show();
+    callback check-new-episode-available(Show) -> bool;
     callback episode-changed(Show);
     callback favorite-changed(Show);
     callback show-filter([Show], Filter) -> [Show];
@@ -68,10 +69,10 @@ export component AppWindow inherits Window {
             add-window.visible = true;
         }
 
-        show-clicked(show) => {
+        show-clicked(show, index) => {
             self.visible = false;
             show-window.day-now = get-weekday-now();
-            show-window.display-show(show);
+            show-window.display-show(show, index);
             show-window.visible = true;
         }
 
@@ -137,14 +138,16 @@ export component AppWindow inherits Window {
 
         episode-changed => {
             episode-changed(show-window.show);
+            self.show.new-episodes-available = check-new-episode-available(self.show);
+            watchlist.shows[self.index] = self.show;
         }
 
-        back(is-changed) => {
+        back(is-changed, show, index) => {
             self.visible = false;
             watchlist.search-mode = false;
             watchlist.visible = true;
             if (is-changed) {
-                watchlist.shows = shows;
+                watchlist.shows[index] = show;
             }
         }
 

@@ -4,6 +4,7 @@ import { Images } from "Global.slint";
 
 export component ListElement inherits Rectangle {
     in property <Show> show;
+    in-out property <int> index;
     in property title-color <=> title.color;
 
     height: 150px;
@@ -98,6 +99,7 @@ export component ListElement inherits Rectangle {
 
 export component ListElementCompact inherits Rectangle {
     in property <Show> show;
+    in-out property <int> index;
     in property title-color <=> title.color;
 
     height: 50px;
