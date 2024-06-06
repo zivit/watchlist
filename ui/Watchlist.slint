@@ -72,29 +72,51 @@ export component Watchlist inherits Rectangle {
                 height: parent.height;
                 alignment: space-between;
 
-                mode-button := ToolButton {
-                    hint: "Change view mode";
-                    icon: mode-compact ? Images.list-compact : Images.list;
-                    width: 50px;
-                    height: 50px;
-                    background-color: Palette.primary;
+                HorizontalLayout {
+                    alignment: start;
 
-                    clicked => {
-                        mode-compact = !mode-compact;
+                    mode-button := ToolButton {
+                        hint: "Change view mode";
+                        icon: mode-compact ? Images.list-compact : Images.list;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        z: 10;
+
+                        clicked => {
+                            mode-compact = !mode-compact;
+                        }
+                    }
+
+                    add-button := ToolButton {
+                        hint: "Add show";
+                        icon: Images.add;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+                        z: 9;
+
+                        clicked => {
+                            add-clicked();
+                        }
                     }
                 }
 
-                search-button := ToolButton {
-                    hint: "Search";
-                    hint-direction-left: true;
-                    icon: Images.search;
-                    width: 50px;
-                    height: 50px;
-                    background-color: Palette.primary;
+                HorizontalLayout {
+                    alignment: end;
 
-                    clicked => {
-                        search-mode = true;
-                        search-input.text-focus();
+                    search-button := ToolButton {
+                        hint: "Search";
+                        hint-direction-left: true;
+                        icon: Images.search;
+                        width: 50px;
+                        height: 50px;
+                        background-color: Palette.primary;
+
+                        clicked => {
+                            search-mode = true;
+                            search-input.text-focus();
+                        }
                     }
                 }
             }
@@ -177,24 +199,6 @@ export component Watchlist inherits Rectangle {
                     background: Palette.border;
                 }
             }
-        }
-    }
-
-    add-button := ToolButton {
-        icon: Images.add;
-        x: root.width - 80px;
-        y: root.height - 80px;
-        width: 50px;
-        height: 50px;
-        background-color: #e36307;
-        border-radius: self.width / 2;
-        drop-shadow-color: #101010;
-        drop-shadow-offset-y: 1px;
-        drop-shadow-blur: 4px;
-        z: 10;
-
-        clicked => {
-            add-clicked();
         }
     }
 }
