@@ -1,8 +1,8 @@
 use std::{fs::File, io::Read, rc::Rc};
 
+use crate::{datetime::*, AppWindow, Show, ShowType, Status};
 use anyhow::{Context, Result};
 use image::EncodableLayout;
-use crate::{datetime::*, AppWindow, Show, ShowType, Status};
 use slint::{ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use sqlite::State;
 
@@ -45,6 +45,7 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let mut statement = connection.prepare(query)?;
     let mut model = Vec::new();
+    let mut index = 0;
 
     while let Ok(State::Row) = statement.next() {
         let picture_blob = statement.read::<Vec<u8>, _>("image");
@@ -94,15 +95,15 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
         let release_time = statement.read::<String, _>("release_time")?;
         let new_episodes_available = check_new_episodes_available(
             &release_time,
-            episode,
+            episode as u32,
             [
-                schedule_monday,
-                schedule_tuesday,
-                schedule_wednesday,
-                schedule_thursday,
-                schedule_friday,
-                schedule_saturday,
-                schedule_sunday,
+                schedule_monday as u32,
+                schedule_tuesday as u32,
+                schedule_wednesday as u32,
+                schedule_thursday as u32,
+                schedule_friday as u32,
+                schedule_saturday as u32,
+                schedule_sunday as u32,
             ],
         )
         .unwrap_or_default();
@@ -110,6 +111,7 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
 
         let show = Show {
             id: statement.read::<i64, _>("id")? as i32,
+            index,
             title: statement.read::<String, _>("title")?.into(),
             alternative_title: statement.read::<String, _>("alternative_title")?.into(),
             release_date: statement.read::<String, _>("release_date")?.into(),
@@ -135,6 +137,7 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
             ..Default::default()
         };
         model.push(show);
+        index += 1;
     }
 
     let shows: Rc<VecModel<Show>> = Rc::new(VecModel::from(model));
@@ -158,7 +161,7 @@ pub fn load_watchlist(ui: &AppWindow) -> Result<()> {
     Ok(())
 }
 
-pub fn add_show(s: Show) -> Result<()> {
+pub fn add_show(s: &Show) -> Result<()> {
     let status = match s.status {
         Status::WatchLater => 0,
         Status::Watching => 1,
@@ -282,7 +285,7 @@ pub fn add_show(s: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn remove_show(show: Show) -> Result<()> {
+pub fn remove_show(show: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!("DELETE FROM list WHERE title = \"{}\";", show.title);
     connection
@@ -291,7 +294,7 @@ pub fn remove_show(show: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn score_changed(show: Show) -> Result<()> {
+pub fn score_changed(show: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET score = \"{}\" WHERE id = \"{}\";",
@@ -303,7 +306,7 @@ pub fn score_changed(show: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn status_changed(show: Show) -> Result<()> {
+pub fn status_changed(show: &Show) -> Result<()> {
     let status = match show.status {
         Status::WatchLater => 0,
         Status::Watching => 1,
@@ -322,7 +325,7 @@ pub fn status_changed(show: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn favorite_changed(show: Show) -> Result<()> {
+pub fn favorite_changed(show: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET favorite = \"{}\" WHERE id = \"{}\";",
@@ -334,7 +337,7 @@ pub fn favorite_changed(show: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn season_changed(show: Show) -> Result<()> {
+pub fn season_changed(show: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET season = \"{}\" WHERE id = \"{}\";",
@@ -346,7 +349,7 @@ pub fn season_changed(show: Show) -> Result<()> {
     Ok(())
 }
 
-pub fn episode_changed(show: Show) -> Result<()> {
+pub fn episode_changed(show: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET episode = \"{}\" WHERE id = \"{}\";",
@@ -357,4 +360,3 @@ pub fn episode_changed(show: Show) -> Result<()> {
         .with_context(|| format!("Failed to change episode to {}", show.score))?;
     Ok(())
 }
-

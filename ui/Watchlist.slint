@@ -10,7 +10,7 @@ export component Watchlist inherits Rectangle {
     in-out property <[Show]> shows;
     out property <bool> mode-compact: false;
     callback add-clicked();
-    callback show-clicked(Show, int);
+    callback show-clicked(Show);
     callback search(string);
     callback search-cancel();
     callback cancel-quick-filter();
@@ -282,7 +282,6 @@ export component Watchlist inherits Rectangle {
 
                     for s[i] in shows : ListElement {
                         show: s;
-                        index: i;
                         title-color: s.new-episodes-available && s.status == Status.watching ?
                             Palette.light-blue : Palette.text;
 
@@ -294,7 +293,7 @@ export component Watchlist inherits Rectangle {
 
                         TouchArea {
                             clicked() => {
-                                show-clicked(s, parent.index);
+                                show-clicked(s);
                             }
                         }
                     }
@@ -322,7 +321,6 @@ export component Watchlist inherits Rectangle {
 
                     for s[i] in shows : ListElementCompact {
                         show: s;
-                        index: i;
                         title-color: s.new-episodes-available && s.status == Status.watching ?
                             Palette.light-blue : Palette.text;
 
@@ -334,7 +332,7 @@ export component Watchlist inherits Rectangle {
 
                         TouchArea {
                             clicked() => {
-                                show-clicked(s, parent.index);
+                                show-clicked(s);
                             }
                         }
                     }

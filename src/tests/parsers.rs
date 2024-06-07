@@ -1,4 +1,7 @@
-use crate::{parsers, sites::{self, Sites}};
+use crate::{
+    parsers,
+    sites::{self, Sites},
+};
 
 fn check_site(link: &str, title: &str, alternative: &str, release_date: &str, about: &str) {
     let site = sites::check_link_is_allowed_site(link);

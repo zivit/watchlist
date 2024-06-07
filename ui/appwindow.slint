@@ -18,7 +18,7 @@ export component AppWindow inherits Window {
     preferred-height: 800px;
     title: "Watchlist";
 
-    callback add-show(Show);
+    callback add-show([Show], Show);
     callback can-import-show-by-link(string) -> bool;
     callback cancel-show();
     callback check-new-episode-available(Show) -> bool;
@@ -33,7 +33,7 @@ export component AppWindow inherits Window {
     callback load-image(string) -> ImageDetails;
     callback open-link(string);
     callback parse-datetime(string) -> [int];
-    callback remove-show(Show);
+    callback remove-show([Show], Show);
     callback score-changed(Show);
     callback search([Show], string) -> [Show];
     callback season-changed(Show);
@@ -43,11 +43,6 @@ export component AppWindow inherits Window {
     property <ImageDetails> show-image;
     property <[Show]> shows;
     property <Filter> filter;
-
-    set-shows(s) => {
-        shows = s;
-        watchlist.shows = shows;
-    }
 
     function load-image-impl(name: string) -> image {
         show-image = root.load-image(name);
@@ -60,6 +55,20 @@ export component AppWindow inherits Window {
         }
     }
 
+    function use-filter() {
+        watchlist.shows = show-filter(shows, filter);
+    }
+
+    function sync-shows-with(show: Show) {
+        shows[show.index] = show;
+        use-filter();
+    }
+
+    set-shows(s) => {
+        shows = s;
+        watchlist.shows = shows;
+    }
+
     watchlist := Watchlist {
         background: Palette.secondary;
 
@@ -69,10 +78,10 @@ export component AppWindow inherits Window {
             add-window.visible = true;
         }
 
-        show-clicked(show, index) => {
+        show-clicked(show) => {
             self.visible = false;
             show-window.day-now = get-weekday-now();
-            show-window.display-show(show, index);
+            show-window.display-show(show);
             show-window.visible = true;
         }
 
@@ -81,38 +90,37 @@ export component AppWindow inherits Window {
         }
 
         search-cancel => {
-            // update-watchlist();
-            watchlist.shows = shows;
+            use-filter();
         }
 
         display-watching => {
             filter.status = FilterStatus.watching;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
 
         display-planned => {
             filter.status = FilterStatus.planned;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
 
         display-completed => {
             filter.status = FilterStatus.completed;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
 
         display-liked => {
             filter.status = FilterStatus.liked;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
 
         display-dropped => {
             filter.status = FilterStatus.dropped;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
 
         cancel-quick-filter => {
             filter.status = FilterStatus.all;
-            watchlist.shows = show-filter(shows, filter);
+            use-filter();
         }
     }
 
@@ -121,33 +129,37 @@ export component AppWindow inherits Window {
         visible: false;
 
         score-changed => {
-            score-changed(show-window.show);
+            score-changed(self.show);
+            sync-shows-with(self.show);
         }
 
         status-changed => {
-            status-changed(show-window.show);
+            status-changed(self.show);
+            sync-shows-with(self.show);
         }
 
         favorite-changed => {
-            favorite-changed(show-window.show);
+            favorite-changed(self.show);
+            sync-shows-with(self.show);
         }
 
         season-changed => {
-            season-changed(show-window.show);
+            season-changed(self.show);
+            sync-shows-with(self.show);
         }
 
         episode-changed => {
-            episode-changed(show-window.show);
+            episode-changed(self.show);
             self.show.new-episodes-available = check-new-episode-available(self.show);
-            watchlist.shows[self.index] = self.show;
+            sync-shows-with(self.show);
         }
 
-        back(is-changed, show, index) => {
+        back(is-changed, show) => {
             self.visible = false;
             watchlist.search-mode = false;
             watchlist.visible = true;
             if (is-changed) {
-                watchlist.shows[index] = show;
+                sync-shows-with(self.show);
             }
         }
 
@@ -158,10 +170,9 @@ export component AppWindow inherits Window {
         }
 
         remove(show) => {
-            remove-show(show);
+            remove-show(shows, show);
             self.visible = false;
             watchlist.visible = true;
-            watchlist.shows = shows;
         }
 
         open-link(link) => {
@@ -174,10 +185,10 @@ export component AppWindow inherits Window {
         visible: false;
 
         add-show(show) => {
-            root.add-show(show);
+            root.add-show(shows, show);
             self.visible = false;
             watchlist.visible = true;
-            watchlist.shows = shows;
+            use-filter();
         }
 
         cancel-show => {

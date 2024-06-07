@@ -18,7 +18,7 @@ export component AddShowWindow inherits Rectangle {
     callback load-image(string) -> image;
     callback get-weekday(string) -> int;
     callback parse-datetime(string) -> [int];
-    property <Show> show;
+    in-out property <Show> show;
     property <Status> status: Status.watch-later;
     in-out property show-image <=> show-image-container.source;
     in-out property <string> link-to-picture;
@@ -26,6 +26,7 @@ export component AddShowWindow inherits Rectangle {
     property <[string]> days: ["Mon", "Tues", "Wed", "Thurs", "Fri", "Sat", "Sun"];
 
     public function reset() {
+        show.id = 0;
         title.text = "";
         alternative-title.text = "";
         release-date.text = "";

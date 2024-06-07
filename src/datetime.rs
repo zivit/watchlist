@@ -18,9 +18,7 @@ pub fn check_new_episodes_available(time: &str, episode: u32, schedule: [u32; 7]
     }
 
     let weeks_count = time_elapsed.num_weeks();
-    let episodes_per_week = schedule
-        .iter()
-        .sum::<u32>();
+    let episodes_per_week = schedule.iter().sum::<u32>();
     let episodes_elapsed = episodes_per_week * weeks_count as u32;
     let episodes_elapsed_this_week: u32 = schedule
         .iter()
@@ -31,4 +29,3 @@ pub fn check_new_episodes_available(time: &str, episode: u32, schedule: [u32; 7]
 
     Ok(episodes_elapsed + episodes_elapsed_this_week > episode)
 }
-

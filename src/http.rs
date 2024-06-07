@@ -25,4 +25,3 @@ pub fn download_image_by_http(url: &std::path::Path) -> Result<std::path::PathBu
         &p.join(url.file_name().unwrap_or_default()),
     ))
 }
-

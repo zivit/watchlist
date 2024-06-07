@@ -32,4 +32,3 @@ pub fn import_clicked(link: &str) -> Show {
     }
     Show::default()
 }
-

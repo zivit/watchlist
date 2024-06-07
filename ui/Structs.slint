@@ -1,3 +1,4 @@
+// Show
 export enum Status {
     watch-later,
     watching,
@@ -12,6 +13,35 @@ export enum ShowType {
     anime,
 }
 
+export struct Show {
+    id: int,
+    index: int,
+    title: string,
+    alternative-title: string,
+    release-date: string,
+    about: string,
+    link-to-show: string,
+    score: int,
+    favorite: bool,
+    status: Status,
+    link-to-picture: string,
+    picture: image,
+    show-type: ShowType,
+    season: int,
+    episodes_count: int,
+    episode: int,
+    release-time: string,
+    schedule-monday: int,
+    schedule-tuesday: int,
+    schedule-wednesday: int,
+    schedule-thursday: int,
+    schedule-friday: int,
+    schedule-saturday: int,
+    schedule-sunday: int,
+    new-episodes-available: bool,
+}
+
+// Filters
 export enum FilterShowType {
     all,
     serial,
@@ -40,32 +70,5 @@ export struct Filter {
     show-type: FilterShowType,
     ongoing: FilterOngoing,
     year: int,
-}
-
-export struct Show {
-    id: int,
-    title: string,
-    alternative-title: string,
-    release-date: string,
-    about: string,
-    link-to-show: string,
-    score: int,
-    favorite: bool,
-    status: Status,
-    link-to-picture: string,
-    picture: image,
-    show-type: ShowType,
-    season: int,
-    episodes_count: int,
-    episode: int,
-    release-time: string,
-    schedule-monday: int,
-    schedule-tuesday: int,
-    schedule-wednesday: int,
-    schedule-thursday: int,
-    schedule-friday: int,
-    schedule-saturday: int,
-    schedule-sunday: int,
-    new-episodes-available: bool,
 }
 

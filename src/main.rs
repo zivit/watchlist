@@ -13,7 +13,7 @@ use datetime::*;
 use http::*;
 use sites::*;
 use slint::{Model, ModelRc, VecModel};
-use std::{rc::Rc, vec};
+use std::rc::Rc;
 
 slint::include_modules!();
 
@@ -22,8 +22,50 @@ fn main() -> Result<()> {
     let ui = AppWindow::new()?;
     database::load_watchlist(&ui)?;
 
-    ui.on_add_show(|show| {
-        _ = add_show(show).map_err(|e| eprintln!("Error: {}", e));
+    ui.on_add_show(|shows, show| match add_show(&show) {
+        Ok(_) => {
+            let model = shows.as_any().downcast_ref::<VecModel<Show>>();
+            if let None = model {
+                eprintln!("Failed to downcast watchlist");
+                return;
+            }
+            let model = model.unwrap();
+
+            if show.id == 0 {
+                let next_id = if shows.row_count() > 0 {
+                    shows.row_data(0).unwrap().id + 1
+                } else {
+                    1
+                };
+                let mut show = show.clone();
+                show.id = next_id;
+                let status = show.status;
+                let index = model
+                    .iter()
+                    .position(|v| v.status.eq(&status))
+                    .unwrap_or_default();
+                model.insert(index, show);
+            } else {
+                for i in 0..model.row_count() {
+                    let s = model.row_data(i).unwrap();
+                    if s.id == show.id {
+                        model.set_row_data(i, show.clone());
+                        break;
+                    }
+                }
+            }
+
+            let count = model.row_count();
+            for i in 0..count {
+                let mut s = model.row_data(i).unwrap();
+                s.index = i as i32;
+                model.set_row_data(i, s);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
     });
 
     ui.on_load_image(|name| -> ImageDetails {
@@ -45,50 +87,66 @@ fn main() -> Result<()> {
         }
     });
 
-    ui.on_remove_show(|show| {
-        _ = remove_show(show).map_err(|e| eprintln!("Error: {}", e));
+    ui.on_remove_show(|shows, show| match remove_show(&show) {
+        Ok(_) => {
+            let model = shows.as_any().downcast_ref::<VecModel<Show>>();
+            if let None = model {
+                eprintln!("Failed to downcast watchlist");
+                return;
+            }
+            let model = model.unwrap();
+            model.remove(show.index as usize);
+            for i in 0..model.row_count() {
+                let mut s = model.row_data(i).unwrap();
+                s.index = i as i32;
+                model.set_row_data(i, s);
+            }
+        }
+        Err(e) => {
+            eprintln!("Error: {}", e);
+            return;
+        }
     });
 
     ui.on_score_changed(|show| {
-        _ = score_changed(show).map_err(|e| eprintln!("Error: {}", e));
+        _ = score_changed(&show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_status_changed(|show| {
-        _ = status_changed(show).map_err(|e| eprintln!("Error: {}", e));
+        _ = status_changed(&show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_favorite_changed(|show| {
-        _ = favorite_changed(show).map_err(|e| eprintln!("Error: {}", e));
+        _ = favorite_changed(&show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_season_changed(|show| {
-        _ = season_changed(show).map_err(|e| eprintln!("Error: {}", e));
+        _ = season_changed(&show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_episode_changed(|show| {
-        _ = episode_changed(show).map_err(|e| eprintln!("Error: {}", e));
+        _ = episode_changed(&show).map_err(|e| eprintln!("Error: {}", e));
     });
 
     ui.on_check_new_episode_available(|show| -> bool {
         check_new_episodes_available(
             show.release_time.as_str(),
-            show.episode,
+            show.episode as u32,
             [
-                show.schedule_monday,
-                show.schedule_tuesday,
-                show.schedule_wednesday,
-                show.schedule_thursday,
-                show.schedule_friday,
-                show.schedule_saturday,
-                show.schedule_sunday,
+                show.schedule_monday as u32,
+                show.schedule_tuesday as u32,
+                show.schedule_wednesday as u32,
+                show.schedule_thursday as u32,
+                show.schedule_friday as u32,
+                show.schedule_saturday as u32,
+                show.schedule_sunday as u32,
             ],
         )
         .unwrap_or_default()
     });
 
     ui.on_open_link(|link| {
-        _ =
-            open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
+        _ = open::that(link.as_str()).map_err(|e| eprintln!("Error: Failed to open URL: {}", e));
     });
 
     ui.on_search(move |shows, text| -> ModelRc<Show> {
