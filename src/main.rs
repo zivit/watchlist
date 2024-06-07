@@ -188,7 +188,8 @@ fn load_watchlist(ui: &AppWindow) -> Result<()> {
                 WHEN 2 THEN 2
                 WHEN 3 THEN 3
                 ELSE 4
-            END;
+            END,
+            id DESC;
     ";
     let shows = execute_query(query)?;
     ui.invoke_set_shows(shows);
