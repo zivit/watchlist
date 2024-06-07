@@ -1,7 +1,7 @@
-use anyhow::{bail, Context, Result};
+use anyhow::{bail, Context, Ok, Result};
 use chrono::prelude::*;
 
-pub fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]) -> Result<bool> {
+pub fn check_new_episodes_available(time: &str, episode: u32, schedule: [u32; 7]) -> Result<bool> {
     let parsed_date = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")
         .with_context(|| format!("Failed to parse release time: {}", time))?;
     let release_time = match Local.from_local_datetime(&parsed_date) {
@@ -11,19 +11,24 @@ pub fn check_new_episodes_available(time: &str, episode: i32, schedule: [i32; 7]
         }
         chrono::offset::LocalResult::None => bail!("Failed to convert naive time to local time"),
     };
-    let time_elapsed = Local::now().signed_duration_since(release_time);
+    let time_now = Local::now();
+    let time_elapsed = time_now.signed_duration_since(release_time);
+    if time_elapsed.num_weeks() < 0 {
+        bail!("Release time is in the future");
+    }
+
     let weeks_count = time_elapsed.num_weeks();
-    let episodes_elapsed = schedule.iter().sum::<i32>() * weeks_count as i32 + 1;
-    let weeks_elapsed =
-        release_time + chrono::Duration::weeks(weeks_count) + chrono::Duration::days(1);
-    let day_of_last_elapsed_episode = weeks_elapsed.weekday();
-    let time_elapsed = Local::now().signed_duration_since(weeks_elapsed);
-    let episodes_elapsed_second_part = schedule
+    let episodes_per_week = schedule
         .iter()
-        .cycle()
-        .take(time_elapsed.num_days() as usize)
-        .skip(day_of_last_elapsed_episode as usize)
-        .sum::<i32>();
-    Ok(episodes_elapsed + episodes_elapsed_second_part > episode)
+        .sum::<u32>();
+    let episodes_elapsed = episodes_per_week * weeks_count as u32;
+    let episodes_elapsed_this_week: u32 = schedule
+        .iter()
+        .enumerate()
+        .filter(|(i, d)| **d > 0 && time_now.weekday() as usize > *i)
+        .map(|(_, d)| *d)
+        .sum();
+
+    Ok(episodes_elapsed + episodes_elapsed_this_week > episode)
 }
 

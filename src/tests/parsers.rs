@@ -59,10 +59,10 @@ fn imdb_im_not_there() {
 #[test]
 fn imdb_yoru_no_kurage() {
     check_site(
-        "https://www.imdb.com/title/tt27237459/?ref_=nv_sr_srsg_6_tt_8_nm_0_q_%25D0%25BC%25D0%25B5%25D0%25B4%25D1%2583%25D0%25B7%25D0%25B0",
-        "Yoru no kurage wa oyogenai",
-        "Yoru no kurage wa oyogenai",
-        "2024– ",
-        "Four girls, an illustrator, a former idol, a VTuber, and a composer, form an anonymous artist group called \"JELEE\", each pursuing their artistic dreams while supporting one another."
+        "https://www.imdb.com/title/tt0388629/?ref_=nv_sr_srsg_0_tt_7_nm_1_q_one%2520pi",
+        "Ван Піс",
+        "One Piece: Wan pîsu",
+        "1999– ",
+        "Monkey D. Luffy sets off on an adventure with his pirate crew in hopes of finding the greatest treasure ever, known as the \"One Piece.\""
     );
 }
