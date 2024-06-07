@@ -12,6 +12,18 @@ struct ParsedShow {
     link_to_picture: String,
 }
 
+fn replace_html_entities(text: &str) -> String {
+    let mut result = text.to_owned();
+    result = result.replace("&#x27;", "'");
+    result = result.replace("&#039;", "'");
+    result = result.replace("&quot;", "\"");
+    result = result.replace("&amp;", "&");
+    result = result.replace("&lt;", "<");
+    result = result.replace("&gt;", ">");
+    result = result.replace("&ndash;", "-");
+    result
+}
+
 fn scrab(
     link: &str,
     title: &str,
@@ -29,7 +41,8 @@ fn scrab(
     let re_title = Regex::new(title)?;
     if let Some(captures) = re_title.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            parsed.title = text.as_str().into();
+            // parsed.title = text.as_str().into();
+            parsed.title = replace_html_entities(text.as_str());
         }
     }
 
@@ -37,6 +50,13 @@ fn scrab(
     if let Some(captures) = re_alternative.captures(&doc) {
         if let Some(text) = captures.get(1) {
             parsed.alternative_title = text.as_str().into();
+            parsed.alternative_title = parsed.alternative_title.replace("&#x27;", "'");
+            parsed.alternative_title = parsed.alternative_title.replace("&#039;", "'");
+            parsed.alternative_title = parsed.alternative_title.replace("&quot;", "\"");
+            parsed.alternative_title = parsed.alternative_title.replace("&amp;", "&");
+            parsed.alternative_title = parsed.alternative_title.replace("&lt;", "<");
+            parsed.alternative_title = parsed.alternative_title.replace("&gt;", ">");
+            parsed.alternative_title = parsed.alternative_title.replace("&ndash;", "-");
         }
     }
 
@@ -51,6 +71,13 @@ fn scrab(
     if let Some(captures) = re_about.captures(&doc) {
         if let Some(text) = captures.get(1) {
             parsed.about = text.as_str().into();
+            parsed.about = parsed.about.replace("&#x27;", "'");
+            parsed.about = parsed.about.replace("&#039;", "'");
+            parsed.about = parsed.about.replace("&quot;", "\"");
+            parsed.about = parsed.about.replace("&amp;", "&");
+            parsed.about = parsed.about.replace("&lt;", "<");
+            parsed.about = parsed.about.replace("&gt;", ">");
+            parsed.about = parsed.about.replace("&ndash;", "-");
         }
     }
 
@@ -92,7 +119,7 @@ pub fn imdb(link: &str) -> Show {
         r#"hero__primary-text">([^<]+)"#,
         r#"Original title: ([^<]+)"#,
         r#"releaseinfo\?ref_=tt_ov_rdat">([^<]+)"#,
-        r#"class="sc-7193fc79-2 kpMXpM">([^<]+)"#,
+        r#"bruFve">([^<]+)"#,
         r#"class="ipc-image" loading="eager" src="([^"]+)"#,
     );
 

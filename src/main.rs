@@ -11,6 +11,9 @@ slint::include_modules!();
 
 mod parsers;
 
+#[cfg(test)]
+mod tests;
+
 const DATABASE_NAME: &str = "watchlist.db";
 const SITE_IMDB: &str = "https://www.imdb.com";
 
