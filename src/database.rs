@@ -1,4 +1,10 @@
-use std::{fs::File, io::Read, rc::Rc, sync::{Arc, Mutex}, thread};
+use std::{
+    fs::File,
+    io::Read,
+    rc::Rc,
+    sync::{Arc, Mutex},
+    thread,
+};
 
 use crate::{datetime::*, AppWindow, Show, ShowType, Status};
 use anyhow::{Context, Result};
@@ -199,7 +205,7 @@ fn load_images(ui: slint::Weak<AppWindow>) -> Result<()> {
     Ok(())
 }
 
-pub fn load_watchlist(ui: &AppWindow) -> Result<()> {
+pub fn load_watchlist(ui: &AppWindow, is_watchlist_loaded: Arc<Mutex<bool>>) -> Result<()> {
     let query = "SELECT * FROM list
         ORDER BY
             CASE status
@@ -217,6 +223,8 @@ pub fn load_watchlist(ui: &AppWindow) -> Result<()> {
     let ui_weak = ui.as_weak();
     thread::spawn(move || {
         _ = load_images(ui_weak).map_err(|e| eprintln!("Failed to load images: {e}"));
+        let mut is_watchlist_loaded = is_watchlist_loaded.lock().unwrap();
+        *is_watchlist_loaded = true;
     });
     Ok(())
 }
@@ -239,8 +247,7 @@ pub fn add_show(s: &Show) -> Result<()> {
     let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
 
     if s.id != 0 {
-        let query =
-            "UPDATE list SET
+        let query = "UPDATE list SET
                 title = ?,
                 alternative_title = ?,
                 release_date = ?,
@@ -286,8 +293,7 @@ pub fn add_show(s: &Show) -> Result<()> {
         statement.bind((21, s.id as i64))?;
         statement.next()?;
     } else {
-        let query =
-            "REPLACE INTO list(title, alternative_title, release_date, about, link_to_show,
+        let query = "REPLACE INTO list(title, alternative_title, release_date, about, link_to_show,
                             score, favorite, status, season, episodes_count, episode, release_time,
                             schedule_monday, schedule_tuesday, schedule_wednesday,
                             schedule_thursday, schedule_friday, schedule_saturday,

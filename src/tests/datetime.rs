@@ -28,7 +28,8 @@ fn check_kaidju_8() {
     let current_episode = 8;
     let _episodes_number = 12;
     let parsed_date = NaiveDateTime::parse_from_str("2024-04-14 06:00", "%Y-%m-%d %H:%M")
-        .with_context(|| format!("Failed to parse release time: {}", "2024-04-14 06:00")).unwrap();
+        .with_context(|| format!("Failed to parse release time: {}", "2024-04-14 06:00"))
+        .unwrap();
     let release_time = match Local.from_local_datetime(&parsed_date) {
         chrono::offset::LocalResult::Single(t) => t,
         chrono::offset::LocalResult::Ambiguous(_, _) => {

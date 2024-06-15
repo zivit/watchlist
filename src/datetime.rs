@@ -1,7 +1,11 @@
 use anyhow::{bail, Ok, Result};
 use chrono::prelude::*;
 
-pub fn check_new_episodes_available(time: &str, current_episode: u32, schedule: [u32; 7]) -> Result<bool> {
+pub fn check_new_episodes_available(
+    time: &str,
+    current_episode: u32,
+    schedule: [u32; 7],
+) -> Result<bool> {
     let start_time = NaiveDateTime::parse_from_str(time, "%Y-%m-%d %H:%M")?;
     let now = Local::now().naive_local();
 

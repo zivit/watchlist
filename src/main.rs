@@ -13,7 +13,7 @@ use datetime::*;
 use http::*;
 use sites::*;
 use slint::{Model, ModelRc, VecModel};
-use std::rc::Rc;
+use std::{rc::Rc, sync::{Arc, Mutex}};
 
 slint::include_modules!();
 
@@ -21,9 +21,47 @@ fn main() -> Result<()> {
     database::create()?;
     let ui = AppWindow::new()?;
 
+    let is_watchlist_loaded = Arc::new(Mutex::new(false));
+    let is_watchlist_loaded_clone = is_watchlist_loaded.clone();
     let ui_weak = ui.as_weak();
     slint::Timer::single_shot(std::time::Duration::from_millis(10), move || {
-        database::load_watchlist(&ui_weak.unwrap()).unwrap();
+        database::load_watchlist(&ui_weak.unwrap(), is_watchlist_loaded_clone).unwrap();
+    });
+
+    let is_watchlist_loaded_clone = is_watchlist_loaded.clone();
+    let ui_weak = ui.as_weak();
+    let check_new_episodes_timer = slint::Timer::default();
+    check_new_episodes_timer.start(slint::TimerMode::Repeated, std::time::Duration::from_secs(1), move || {
+        let is_watchlist_loaded = is_watchlist_loaded_clone.lock().unwrap();
+        if !*is_watchlist_loaded {
+            return;
+        }
+        let ui = ui_weak.unwrap();
+        let shows = ui.get_shows();
+
+        for i in 0..shows.row_count() {
+            let s = shows.row_data(i).unwrap();
+            let is_new_episodes_available = match check_new_episodes_available(
+                s.release_time.as_str(),
+                s.episode as u32,
+                [
+                    s.schedule_monday as u32,
+                    s.schedule_tuesday as u32,
+                    s.schedule_wednesday as u32,
+                    s.schedule_thursday as u32,
+                    s.schedule_friday as u32,
+                    s.schedule_saturday as u32,
+                    s.schedule_sunday as u32,
+                ],
+            ) {
+                Ok(v) => v,
+                Err(_) => false,
+            };
+
+            if s.new_episodes_available != is_new_episodes_available {
+                ui.invoke_change_new_episodes_available_status(i as i32, is_new_episodes_available);
+            };
+        }
     });
 
     ui.on_add_show(|shows, show| match add_show(&show) {
@@ -43,6 +81,22 @@ fn main() -> Result<()> {
                 };
                 let mut show = show.clone();
                 show.id = next_id;
+                show.new_episodes_available = match check_new_episodes_available(
+                    show.release_time.as_str(),
+                    show.episode as u32,
+                    [
+                        show.schedule_monday as u32,
+                        show.schedule_tuesday as u32,
+                        show.schedule_wednesday as u32,
+                        show.schedule_thursday as u32,
+                        show.schedule_friday as u32,
+                        show.schedule_saturday as u32,
+                        show.schedule_sunday as u32,
+                    ],
+                ) {
+                    Ok(v) => v,
+                    Err(_) => false,
+                };
                 let status = show.status;
                 let index = model
                     .iter()

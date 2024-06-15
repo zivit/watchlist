@@ -23,6 +23,7 @@ export component AppWindow inherits Window {
     callback can-import-show-by-link(string) -> bool;
     callback cancel-show();
     callback check-new-episode-available(Show) -> bool;
+    callback change-new-episodes-available-status(int, bool);
     callback episode-changed(Show);
     callback favorite-changed(Show);
     callback show-filter([Show], Filter) -> [Show];
@@ -69,6 +70,11 @@ export component AppWindow inherits Window {
     set-shows(s) => {
         shows = s;
         watchlist.shows = shows;
+    }
+
+    change-new-episodes-available-status(i, is-available) => {
+        shows[i].new-episodes-available = is-available;
+        use-filter();
     }
 
     watchlist := Watchlist {
