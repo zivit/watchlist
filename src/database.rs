@@ -1,9 +1,5 @@
 use std::{
-    fs::File,
-    io::Read,
-    rc::Rc,
-    sync::{Arc, Mutex},
-    thread,
+    fs::File, io::Read, path::PathBuf, rc::Rc, sync::{Arc, Mutex}, thread
 };
 
 use crate::{datetime::*, AppWindow, Show, ShowType, Status};
@@ -12,10 +8,15 @@ use image::EncodableLayout;
 use slint::{ComponentHandle, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use sqlite::State;
 
-pub const DATABASE_NAME: &str = "watchlist.db";
+fn get_database_name() -> PathBuf {
+    let mut path = std::env::current_exe().unwrap();
+    path.pop();
+    path.push("watchlist.db");
+    path
+}
 
 pub fn create() -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = "CREATE TABLE IF NOT EXISTS list (
                      id INTEGER PRIMARY KEY AUTOINCREMENT,
                      title TEXT NOT NULL UNIQUE,
@@ -48,7 +49,7 @@ pub fn create() -> Result<()> {
 }
 
 fn rows_count() -> Result<u32> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let mut statement = connection.prepare("SELECT COUNT(*) FROM list;")?;
     statement.next()?;
     let count: i64 = statement.read::<i64, _>(0)?;
@@ -56,7 +57,7 @@ fn rows_count() -> Result<u32> {
 }
 
 fn execute_query(query: &str) -> Result<ModelRc<Show>> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let mut statement = connection.prepare(query)?;
     let mut model = Vec::new();
     let mut index = 0;
@@ -150,7 +151,7 @@ fn load_images(ui: slint::Weak<AppWindow>) -> Result<()> {
     ";
     let rows_number = rows_count()?;
 
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let mut statement = connection.prepare(query)?;
     let model = Arc::new(Mutex::new(Vec::new()));
     let mut index = 0;
@@ -244,7 +245,7 @@ pub fn add_show(s: &Show) -> Result<()> {
         ShowType::Anime => 3,
     };
 
-    let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
+    let connection = sqlite::open(get_database_name()).expect("Failed to connect to database");
 
     if s.id != 0 {
         let query = "UPDATE list SET
@@ -346,7 +347,7 @@ pub fn add_show(s: &Show) -> Result<()> {
 }
 
 pub fn remove_show(show: &Show) -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!("DELETE FROM list WHERE title = \"{}\";", show.title);
     connection
         .execute(query)
@@ -355,7 +356,7 @@ pub fn remove_show(show: &Show) -> Result<()> {
 }
 
 pub fn score_changed(show: &Show) -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET score = \"{}\" WHERE id = \"{}\";",
         show.score, show.id,
@@ -374,7 +375,7 @@ pub fn status_changed(show: &Show) -> Result<()> {
         Status::Dropped => 3,
     };
 
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET status = \"{}\" WHERE id = \"{}\";",
         status, show.id,
@@ -386,7 +387,7 @@ pub fn status_changed(show: &Show) -> Result<()> {
 }
 
 pub fn favorite_changed(show: &Show) -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET favorite = \"{}\" WHERE id = \"{}\";",
         show.favorite, show.id,
@@ -398,7 +399,7 @@ pub fn favorite_changed(show: &Show) -> Result<()> {
 }
 
 pub fn season_changed(show: &Show) -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET season = \"{}\" WHERE id = \"{}\";",
         show.season, show.id,
@@ -410,7 +411,7 @@ pub fn season_changed(show: &Show) -> Result<()> {
 }
 
 pub fn episode_changed(show: &Show) -> Result<()> {
-    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let connection = sqlite::open(get_database_name()).context("Failed to open database")?;
     let query = format!(
         "UPDATE list SET episode = \"{}\" WHERE id = \"{}\";",
         show.episode, show.id,
