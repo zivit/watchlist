@@ -20,7 +20,11 @@ slint::include_modules!();
 fn main() -> Result<()> {
     database::create()?;
     let ui = AppWindow::new()?;
-    database::load_watchlist(&ui)?;
+
+    let ui_weak = ui.as_weak();
+    slint::Timer::single_shot(std::time::Duration::from_millis(10), move || {
+        database::load_watchlist(&ui_weak.unwrap()).unwrap();
+    });
 
     ui.on_add_show(|shows, show| match add_show(&show) {
         Ok(_) => {

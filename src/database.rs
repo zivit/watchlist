@@ -1,9 +1,9 @@
-use std::{fs::File, io::Read, rc::Rc};
+use std::{fs::File, io::Read, rc::Rc, sync::{Arc, Mutex}, thread};
 
 use crate::{datetime::*, AppWindow, Show, ShowType, Status};
 use anyhow::{Context, Result};
 use image::EncodableLayout;
-use slint::{ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
+use slint::{ComponentHandle, Model, ModelRc, Rgba8Pixel, SharedPixelBuffer, VecModel};
 use sqlite::State;
 
 pub const DATABASE_NAME: &str = "watchlist.db";
@@ -41,6 +41,14 @@ pub fn create() -> Result<()> {
     Ok(())
 }
 
+fn rows_count() -> Result<u32> {
+    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let mut statement = connection.prepare("SELECT COUNT(*) FROM list;")?;
+    statement.next()?;
+    let count: i64 = statement.read::<i64, _>(0)?;
+    Ok(count as u32)
+}
+
 fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
     let mut statement = connection.prepare(query)?;
@@ -48,26 +56,6 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     let mut index = 0;
 
     while let Ok(State::Row) = statement.next() {
-        let picture_blob = statement.read::<Vec<u8>, _>("image");
-        let picture;
-        if let Ok(content) = picture_blob {
-            if content.is_empty() {
-                picture = slint::Image::default();
-            } else {
-                let picture_image = image::load_from_memory(content.as_bytes())
-                    .context("Failed to load picture from memory")?
-                    .into_rgba8();
-                let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
-                    picture_image.as_raw(),
-                    picture_image.width(),
-                    picture_image.height(),
-                );
-                picture = slint::Image::from_rgba8(buffer);
-            }
-        } else {
-            picture = slint::Image::default();
-        }
-
         let st = statement.read::<i64, _>("status")?;
         let status = match st {
             1 => Status::Watching,
@@ -107,7 +95,6 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
             ],
         )
         .unwrap_or_default();
-        // .map_or_else(|e| { eprintln!("Error: {}", e); false }, |v| v);
 
         let show = Show {
             id: statement.read::<i64, _>("id")? as i32,
@@ -120,7 +107,6 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
             score: statement.read::<i64, _>("score")? as i32,
             favorite: statement.read::<String, _>("favorite")?.eq("true"),
             status,
-            picture,
             show_type,
             season: statement.read::<i64, _>("season")? as i32,
             episodes_count,
@@ -144,6 +130,75 @@ fn execute_query(query: &str) -> Result<ModelRc<Show>> {
     Ok(ModelRc::from(shows))
 }
 
+fn load_images(ui: slint::Weak<AppWindow>) -> Result<()> {
+    let query = "SELECT image FROM list
+        ORDER BY
+            CASE status
+                WHEN 1 THEN 0
+                WHEN 0 THEN 1
+                WHEN 2 THEN 2
+                WHEN 3 THEN 3
+                ELSE 4
+            END,
+            id DESC;
+    ";
+    let rows_number = rows_count()?;
+
+    let connection = sqlite::open(DATABASE_NAME).context("Failed to open database")?;
+    let mut statement = connection.prepare(query)?;
+    let model = Arc::new(Mutex::new(Vec::new()));
+    let mut index = 0;
+
+    while let Ok(State::Row) = statement.next() {
+        let picture_blob = statement.read::<Vec<u8>, _>("image");
+        if let Ok(content) = picture_blob {
+            if content.is_empty() {
+                model.lock().unwrap().push(None);
+            } else {
+                let picture_image = image::load_from_memory(content.as_bytes())
+                    .expect("Failed to load picture from memory")
+                    .into_rgba8();
+                let buffer = SharedPixelBuffer::<Rgba8Pixel>::clone_from_slice(
+                    picture_image.as_raw(),
+                    picture_image.width(),
+                    picture_image.height(),
+                );
+                model.lock().unwrap().push(Some(buffer));
+            }
+        } else {
+            model.lock().unwrap().push(None);
+        }
+
+        index += 1;
+        let loading_progress = index as f32 / rows_number as f32 * 100.0;
+        let ui_clone = ui.clone();
+        _ = slint::invoke_from_event_loop(move || {
+            if let Some(app) = ui_clone.upgrade() {
+                app.set_loading_progress(loading_progress as i32);
+            }
+        });
+    }
+
+    let ui_clone = ui.clone();
+    _ = slint::invoke_from_event_loop(move || {
+        let model = model.lock().unwrap();
+        if let Some(app) = ui_clone.upgrade() {
+            let shows = app.get_shows();
+            for i in 0..shows.row_count() {
+                if let Some(buffer) = model[i].clone() {
+                    let picture = slint::Image::from_rgba8(buffer);
+                    let mut s = shows.row_data(i).unwrap();
+                    s.picture = picture;
+                    shows.set_row_data(i, s);
+                }
+            }
+            app.set_shows(shows);
+        }
+    });
+
+    Ok(())
+}
+
 pub fn load_watchlist(ui: &AppWindow) -> Result<()> {
     let query = "SELECT * FROM list
         ORDER BY
@@ -158,6 +213,11 @@ pub fn load_watchlist(ui: &AppWindow) -> Result<()> {
     ";
     let shows = execute_query(query)?;
     ui.invoke_set_shows(shows);
+
+    let ui_weak = ui.as_weak();
+    thread::spawn(move || {
+        _ = load_images(ui_weak).map_err(|e| eprintln!("Failed to load images: {e}"));
+    });
     Ok(())
 }
 

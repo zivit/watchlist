@@ -1,0 +1,18 @@
+export component LoadingWindow inherits Rectangle {
+    in property <int> progress: 0;
+
+    background: #000000C0;
+    visible: progress != 100;
+
+    VerticalLayout {
+        Text {
+            text: "Loading... " + progress + "%";
+            font-size: 24px;
+            vertical-alignment: center;
+            horizontal-alignment: center;
+
+            TouchArea {
+            }
+        }
+    }
+}

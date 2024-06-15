@@ -5,6 +5,7 @@ import { ShowWindow } from "ShowWindow.slint";
 import { ChangePictureDialog } from "ChangePictureDialog.slint";
 import { Images, Palette } from "Global.slint";
 import { Watchlist } from "Watchlist.slint";
+import { LoadingWindow } from "LoadingWidget.slint";
 
 export struct ImageDetails {
     source: image,
@@ -41,8 +42,9 @@ export component AppWindow inherits Window {
     callback status-changed(Show);
 
     property <ImageDetails> show-image;
-    property <[Show]> shows;
+    in-out property <[Show]> shows;
     property <Filter> filter;
+    in-out property loading-progress <=> loadinw-window.progress;
 
     function load-image-impl(name: string) -> image {
         show-image = root.load-image(name);
@@ -71,6 +73,9 @@ export component AppWindow inherits Window {
 
     watchlist := Watchlist {
         background: Palette.secondary;
+
+        loadinw-window := LoadingWindow {
+        }
 
         add-clicked => {
             self.visible = false;
