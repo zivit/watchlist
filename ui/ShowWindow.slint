@@ -337,6 +337,16 @@ export component ShowWindow inherits Rectangle {
                     changed(value) => {
                         show.episode = value;
                         episode-changed();
+
+                        if (show.episode >= show.episodes-count && watching-button.checked) {
+                            watching-button.checked = false;
+                            watch-later-button.checked = false;
+                            completed-button.checked = true;
+                            dropped-button.checked = false;
+                            show.status = Status.completed;
+                            status-changed();
+                        }
+
                         show-changed = true;
                     }
                 }
