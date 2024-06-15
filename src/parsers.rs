@@ -41,7 +41,6 @@ fn scrab(
     let re_title = Regex::new(title)?;
     if let Some(captures) = re_title.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            // parsed.title = text.as_str().into();
             parsed.title = replace_html_entities(text.as_str());
         }
     }
@@ -49,42 +48,28 @@ fn scrab(
     let re_alternative = Regex::new(alternative)?;
     if let Some(captures) = re_alternative.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            parsed.alternative_title = text.as_str().into();
-            parsed.alternative_title = parsed.alternative_title.replace("&#x27;", "'");
-            parsed.alternative_title = parsed.alternative_title.replace("&#039;", "'");
-            parsed.alternative_title = parsed.alternative_title.replace("&quot;", "\"");
-            parsed.alternative_title = parsed.alternative_title.replace("&amp;", "&");
-            parsed.alternative_title = parsed.alternative_title.replace("&lt;", "<");
-            parsed.alternative_title = parsed.alternative_title.replace("&gt;", ">");
-            parsed.alternative_title = parsed.alternative_title.replace("&ndash;", "-");
+            parsed.alternative_title = replace_html_entities(text.as_str());
         }
     }
 
     let re_release = Regex::new(release)?;
     if let Some(captures) = re_release.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            parsed.release_date = text.as_str().into();
+            parsed.release_date = replace_html_entities(text.as_str());
         }
     }
 
     let re_about = Regex::new(about)?;
     if let Some(captures) = re_about.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            parsed.about = text.as_str().into();
-            parsed.about = parsed.about.replace("&#x27;", "'");
-            parsed.about = parsed.about.replace("&#039;", "'");
-            parsed.about = parsed.about.replace("&quot;", "\"");
-            parsed.about = parsed.about.replace("&amp;", "&");
-            parsed.about = parsed.about.replace("&lt;", "<");
-            parsed.about = parsed.about.replace("&gt;", ">");
-            parsed.about = parsed.about.replace("&ndash;", "-");
+            parsed.about = replace_html_entities(text.as_str());
         }
     }
 
     let re_image = Regex::new(image)?;
     if let Some(captures) = re_image.captures(&doc) {
         if let Some(text) = captures.get(1) {
-            parsed.link_to_picture = text.as_str().into();
+            parsed.link_to_picture = replace_html_entities(text.as_str());
         }
     }
 

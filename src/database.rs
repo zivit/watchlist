@@ -236,92 +236,87 @@ pub fn add_show(s: &Show) -> Result<()> {
         ShowType::Anime => 3,
     };
 
-    let title = s.title.to_string().replace('"', "“");
-    let alternative_title = s.alternative_title.to_string().replace('"', "“");
-    let about = s.about.to_string().replace('"', "“");
-
     let connection = sqlite::open(DATABASE_NAME).expect("Failed to connect to database");
 
     if s.id != 0 {
-        let query = format!(
+        let query =
             "UPDATE list SET
-                title = \"{}\",
-                alternative_title = \"{}\",
-                release_date = \"{}\",
-                about = \"{}\",
-                link_to_show = \"{}\",
-                score = \"{}\",
-                favorite = \"{}\",
-                status = \"{}\",
-                season = \"{}\",
-                episodes_count = \"{}\",
-                episode = \"{}\",
-                release_time = \"{}\",
-                schedule_monday = \"{}\",
-                schedule_tuesday = \"{}\",
-                schedule_wednesday = \"{}\",
-                schedule_thursday = \"{}\",
-                schedule_friday = \"{}\",
-                schedule_saturday = \"{}\",
-                schedule_sunday = \"{}\",
-                show_type = \"{}\"
-            WHERE id = {};
-            ",
-            title,
-            alternative_title,
-            s.release_date,
-            about,
-            s.link_to_show,
-            s.score,
-            s.favorite,
-            status,
-            s.season,
-            s.episodes_count,
-            s.episode,
-            s.release_time,
-            s.schedule_monday,
-            s.schedule_tuesday,
-            s.schedule_wednesday,
-            s.schedule_thursday,
-            s.schedule_friday,
-            s.schedule_saturday,
-            s.schedule_sunday,
-            show_type,
-            s.id,
-        );
-        connection.execute(query).context("Failed to update show")?;
+                title = ?,
+                alternative_title = ?,
+                release_date = ?,
+                about = ?,
+                link_to_show = ?,
+                score = ?,
+                favorite = ?,
+                status = ?,
+                season = ?,
+                episodes_count = ?,
+                episode = ?,
+                release_time = ?,
+                schedule_monday = ?,
+                schedule_tuesday = ?,
+                schedule_wednesday = ?,
+                schedule_thursday = ?,
+                schedule_friday = ?,
+                schedule_saturday = ?,
+                schedule_sunday = ?,
+                show_type = ?
+            WHERE id = {};";
+        let mut statement = connection.prepare(query)?;
+        statement.bind((1, s.title.as_str()))?;
+        statement.bind((2, s.alternative_title.as_str()))?;
+        statement.bind((3, s.release_date.as_str()))?;
+        statement.bind((4, s.about.as_str()))?;
+        statement.bind((5, s.link_to_show.as_str()))?;
+        statement.bind((6, s.score as i64))?;
+        statement.bind((7, s.favorite as i64))?;
+        statement.bind((8, status as i64))?;
+        statement.bind((9, s.season as i64))?;
+        statement.bind((10, s.episodes_count as i64))?;
+        statement.bind((11, s.episode as i64))?;
+        statement.bind((12, s.release_time.as_str()))?;
+        statement.bind((13, s.schedule_monday as i64))?;
+        statement.bind((14, s.schedule_tuesday as i64))?;
+        statement.bind((15, s.schedule_wednesday as i64))?;
+        statement.bind((16, s.schedule_thursday as i64))?;
+        statement.bind((17, s.schedule_friday as i64))?;
+        statement.bind((18, s.schedule_saturday as i64))?;
+        statement.bind((19, s.schedule_sunday as i64))?;
+        statement.bind((20, show_type))?;
+        statement.bind((21, s.id as i64))?;
+        if let Ok(sqlite::State::Row) = statement.next() {}
     } else {
-        let query = format!(
+        let query =
             "REPLACE INTO list(title, alternative_title, release_date, about, link_to_show,
                             score, favorite, status, season, episodes_count, episode, release_time,
                             schedule_monday, schedule_tuesday, schedule_wednesday,
                             schedule_thursday, schedule_friday, schedule_saturday,
                             schedule_sunday, show_type) VALUES
-                            (\"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
-                            \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\", \"{}\",
-                            \"{}\", \"{}\", \"{}\", \"{}\");",
-            title,
-            alternative_title,
-            s.release_date,
-            about,
-            s.link_to_show,
-            s.score,
-            s.favorite,
-            status,
-            s.season,
-            s.episodes_count,
-            s.episode,
-            s.release_time,
-            s.schedule_monday,
-            s.schedule_tuesday,
-            s.schedule_wednesday,
-            s.schedule_thursday,
-            s.schedule_friday,
-            s.schedule_saturday,
-            s.schedule_sunday,
-            show_type,
-        );
-        connection.execute(query).context("Failed to add show")?;
+                            (?, ?, ?, ?, ?, ?, ?, ?,
+                            ?, ?, ?, ?, ?, ?, ?, ?,
+                            ?, ?, ?, ?);";
+        let mut statement = connection.prepare(query)?;
+        statement.bind((1, s.title.as_str()))?;
+        statement.bind((2, s.alternative_title.as_str()))?;
+        statement.bind((3, s.release_date.as_str()))?;
+        statement.bind((4, s.about.as_str()))?;
+        statement.bind((5, s.link_to_show.as_str()))?;
+        statement.bind((6, s.score as i64))?;
+        statement.bind((7, s.favorite as i64))?;
+        statement.bind((8, status as i64))?;
+        statement.bind((9, s.season as i64))?;
+        statement.bind((10, s.episodes_count as i64))?;
+        statement.bind((11, s.episode as i64))?;
+        statement.bind((12, s.release_time.as_str()))?;
+        statement.bind((13, s.schedule_monday as i64))?;
+        statement.bind((14, s.schedule_tuesday as i64))?;
+        statement.bind((15, s.schedule_wednesday as i64))?;
+        statement.bind((16, s.schedule_thursday as i64))?;
+        statement.bind((17, s.schedule_friday as i64))?;
+        statement.bind((18, s.schedule_saturday as i64))?;
+        statement.bind((19, s.schedule_sunday as i64))?;
+        statement.bind((20, show_type))?;
+        if let Ok(sqlite::State::Row) = statement.next() {}
     }
 
     if !s.link_to_picture.is_empty() {
@@ -337,8 +332,8 @@ pub fn add_show(s: &Show) -> Result<()> {
             ""
         };
 
-        let mut statement = connection.prepare(query).unwrap();
-        statement.bind((1, st)).unwrap();
+        let mut statement = connection.prepare(query)?;
+        statement.bind((1, st))?;
         if let Ok(sqlite::State::Row) = statement.next() {}
     }
 
