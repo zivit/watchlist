@@ -23,6 +23,8 @@ export component Watchlist inherits Rectangle {
     in-out property <bool> search-mode: false;
 
     VerticalLayout {
+        alignment: start;
+
         search-toolbar := ToolBar {
             height: search-mode ? 50px : 0px;
             background: Palette.primary;
@@ -342,7 +344,6 @@ export component Watchlist inherits Rectangle {
             scrollbar-compact := Rectangle {
                 width: 8px;
                 background: Palette.primary;
-                height: root.height;
 
                 scrollbar-indicator-compact := Rectangle {
                     height: min(list-compact.height, scroll-coef * list-compact.height);
