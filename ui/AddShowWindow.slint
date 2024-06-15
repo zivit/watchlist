@@ -380,6 +380,10 @@ export component AddShowWindow inherits Rectangle {
                             root.show-image = load-image(root.show.link-to-picture);
                             score-widget.score = root.show.score;
 
+                            watch-later-button.checked = false;
+                            watching-button.checked = false;
+                            completed-button.checked = false;
+                            dropped-button.checked = false;
                             if (root.show.status == Status.watch-later) {
                                 watch-later-button.checked = true;
                             }
