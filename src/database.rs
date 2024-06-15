@@ -261,7 +261,7 @@ pub fn add_show(s: &Show) -> Result<()> {
                 schedule_saturday = ?,
                 schedule_sunday = ?,
                 show_type = ?
-            WHERE id = {};";
+            WHERE id = ?;";
         let mut statement = connection.prepare(query)?;
         statement.bind((1, s.title.as_str()))?;
         statement.bind((2, s.alternative_title.as_str()))?;
@@ -284,7 +284,7 @@ pub fn add_show(s: &Show) -> Result<()> {
         statement.bind((19, s.schedule_sunday as i64))?;
         statement.bind((20, show_type))?;
         statement.bind((21, s.id as i64))?;
-        if let Ok(sqlite::State::Row) = statement.next() {}
+        statement.next()?;
     } else {
         let query =
             "REPLACE INTO list(title, alternative_title, release_date, about, link_to_show,
@@ -292,9 +292,8 @@ pub fn add_show(s: &Show) -> Result<()> {
                             schedule_monday, schedule_tuesday, schedule_wednesday,
                             schedule_thursday, schedule_friday, schedule_saturday,
                             schedule_sunday, show_type) VALUES
-                            (?, ?, ?, ?, ?, ?, ?, ?,
-                            ?, ?, ?, ?, ?, ?, ?, ?,
-                            ?, ?, ?, ?);";
+                            (?, ?, ?, ?, ?, ?, ?, ?, ?, ?,
+                             ?, ?, ?, ?, ?, ?, ?, ?, ?, ?);";
         let mut statement = connection.prepare(query)?;
         statement.bind((1, s.title.as_str()))?;
         statement.bind((2, s.alternative_title.as_str()))?;
@@ -316,7 +315,7 @@ pub fn add_show(s: &Show) -> Result<()> {
         statement.bind((18, s.schedule_saturday as i64))?;
         statement.bind((19, s.schedule_sunday as i64))?;
         statement.bind((20, show_type))?;
-        if let Ok(sqlite::State::Row) = statement.next() {}
+        statement.next()?;
     }
 
     if !s.link_to_picture.is_empty() {
@@ -334,7 +333,7 @@ pub fn add_show(s: &Show) -> Result<()> {
 
         let mut statement = connection.prepare(query)?;
         statement.bind((1, st))?;
-        if let Ok(sqlite::State::Row) = statement.next() {}
+        statement.next()?;
     }
 
     Ok(())
