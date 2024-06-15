@@ -19,8 +19,14 @@ export component Watchlist inherits Rectangle {
     callback display-completed();
     callback display-liked();
     callback display-dropped();
+    callback list-changed();
 
     in-out property <bool> search-mode: false;
+
+    list-changed => {
+        list.viewport-y = 0;
+        list-compact.viewport-y = 0;
+    }
 
     VerticalLayout {
         alignment: start;
@@ -45,6 +51,7 @@ export component Watchlist inherits Rectangle {
                     edited => {
                         is-changed = true;
                         search(self.text);
+                        list-changed();
                     }
                 }
 
@@ -62,6 +69,7 @@ export component Watchlist inherits Rectangle {
                             is-changed = false;
                             search-input.text = "";
                             search-cancel();
+                            list-changed();
                         }
                     }
                 }
@@ -93,6 +101,7 @@ export component Watchlist inherits Rectangle {
 
                         clicked => {
                             mode-compact = !mode-compact;
+                            list-changed();
                         }
                     }
 
@@ -135,6 +144,7 @@ export component Watchlist inherits Rectangle {
                             else {
                                 display-watching();
                             }
+                            list-changed();
                         }
                     }
 
@@ -160,6 +170,7 @@ export component Watchlist inherits Rectangle {
                             else {
                                 display-planned();
                             }
+                            list-changed();
                         }
                     }
 
@@ -185,6 +196,7 @@ export component Watchlist inherits Rectangle {
                             else {
                                 display-completed();
                             }
+                            list-changed();
                         }
                     }
 
@@ -210,6 +222,7 @@ export component Watchlist inherits Rectangle {
                             else {
                                 display-liked();
                             }
+                            list-changed();
                         }
                     }
 
@@ -235,6 +248,7 @@ export component Watchlist inherits Rectangle {
                             else {
                                 display-dropped();
                             }
+                            list-changed();
                         }
                     }
                 }
@@ -274,8 +288,10 @@ export component Watchlist inherits Rectangle {
             }
         }
 
-        if !root.mode-compact : HorizontalLayout {
+        /*if !root.mode-compact :*/ HorizontalLayout {
             property <float> scroll-coef: list.height / list.viewport-height;
+            visible: !root.mode-compact;
+            height: root.mode-compact ? 0px : root.height - 50px;
 
             list := Flickable {
                 VerticalBox {
@@ -313,8 +329,10 @@ export component Watchlist inherits Rectangle {
                 }
             }
         }
-        if root.mode-compact : HorizontalLayout {
+        /*if root.mode-compact :*/ HorizontalLayout {
             property <float> scroll-coef: list-compact.height / list-compact.viewport-height;
+            visible: root.mode-compact;
+            height: root.mode-compact ? root.height - 50px : 0px;
 
             list-compact := Flickable {
                 VerticalBox {
