@@ -4,6 +4,7 @@ version = "0.1.0"
 authors = ["zivit <zinc.vitaliy@gmail.com>"]
 edition = "2021"
 build = "build.rs"
+description = "Application for keeping your list of watched shows or those you plan to watch."
 
 # See more keys and their definitions at https://doc.rust-lang.org/cargo/reference/manifest.html
 
@@ -21,3 +22,9 @@ webpage = "2.0"
 
 [build-dependencies]
 slint-build = "1.4"
+
+[package.metadata.bundle]
+name = "watchlist"
+identifier = "com.zivit.watchlist"
+icon = ["icon/tv.png"]  # (необов'язково) шлях до вашого значка
+# resources = ["path/to/resource"]  # (необов'язково) додаткові ресурси
